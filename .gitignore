@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Environment files (keep templates)
+.env
+.env.*
+!.env.example
+!.env.production.example
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/.next-build/
+frontend/.next-prod/
+coverage/
+*.tsbuildinfo
+
+# Local databases and backups
+backend/prisma/dev.db
+*.db
+*.sqlite
+*.sqlite3
+backups/
+
+# Runtime/temp artifacts
+tmp/
+temp/
+.cache/
+
+# Production ops artifacts
+ops/nginx/certs/*.pem
+ops/nginx/certs/*.key
+ops/nginx/certs/live/
+ops/nginx/certs/archive/
+ops/nginx/certs/renewal/
+ops/nginx/acme/*
+!ops/nginx/acme/.gitkeep

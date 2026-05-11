@@ -1,0 +1,38 @@
+groups:
+  - name: swimsync-alerts
+    rules:
+      - alert: SwimSyncHighErrorRate
+        expr: increase(swimsync_http_errors_total[5m]) > 20
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High backend error rate"
+          description: "More than 20 errors in 5 minutes."
+
+      - alert: SwimSyncHighLatency
+        expr: histogram_quantile(0.95, rate(swimsync_http_latency_ms_bucket[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency"
+          description: "P95 latency is above 1000 ms for 5 minutes."
+
+      - alert: SwimSyncErrorBudgetBurnFast
+        expr: (sum(rate(swimsync_http_errors_total[5m])) / clamp_min(sum(rate(swimsync_http_requests_total[5m])), 1)) > 0.02
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error budget burn rate is too high (fast)"
+          description: "5m error rate is above 2%."
+
+      - alert: SwimSyncErrorBudgetBurnSlow
+        expr: (sum(rate(swimsync_http_errors_total[1h])) / clamp_min(sum(rate(swimsync_http_requests_total[1h])), 1)) > 0.01
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Error budget burn rate is elevated (slow)"
+          description: "1h error rate is above 1%."

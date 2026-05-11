@@ -1,0 +1,330 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  admin
+  secretary
+  operator
+}
+
+enum CompetitionStatus {
+  draft
+  active
+  completed
+}
+
+enum AthleteGender {
+  M
+  F
+  MIXED
+  X
+}
+
+enum SwimStyle {
+  FREE
+  BREAST
+  BACK
+  FLY
+  MEDLEY
+  Freestyle
+  Breaststroke
+  Backstroke
+  Butterfly
+  Medley
+}
+
+enum EntryStatus {
+  IN
+  PK
+  DQ
+  DNS
+  DNF
+}
+
+enum ResultStatus {
+  OK
+  DQ
+  DNS
+  DNF
+  PK
+}
+
+enum ResultProtocolFormat {
+  SEPARATE
+  COMBINED
+  MIXED
+}
+
+model Competition {
+  id              Int      @id @default(autoincrement())
+  name            String
+  categoriesStr   String   @default("") // Категорії учасників (для заголовку)
+  location        String   // Місто
+  venue           String   @default("") // Назва установи (басейн)
+  poolLength      Int      // 25 or 50
+  lanes           Int      @default(8)
+  dateFrom        DateTime?
+  dateTo          DateTime?
+  status          CompetitionStatus   @default(draft) // draft, active, completed
+  circularSeeding Boolean  @default(false)
+  resultProtocolFormat ResultProtocolFormat @default(SEPARATE)
+  mixedFormatPrimaryAgeGroupId Int?
+  mixedFormatSecondaryAgeGroupIds String? // JSON array as string: "[1,2,3]"
+  resultProtocolConfigJson Json?
+  createdByUserId Int?
+  createdAt       DateTime @default(now())
+  createdByUser   User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  ageGroups CompetitionAgeGroup[]
+  events    Event[]
+  athleteApplications AthleteApplication[]
+  resultProtocolPresets ResultProtocolPreset[]
+
+  @@index([status, createdAt])
+  @@index([createdByUserId, createdAt])
+  @@index([dateFrom, dateTo])
+}
+
+model CompetitionAgeGroup {
+  id            Int    @id @default(autoincrement())
+  competitionId Int
+  name          String // "Група І"
+  birthYearFrom Int    // 2012
+  birthYearTo   Int    // 2013
+
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  entries     Entry[]
+
+  @@index([competitionId])
+}
+
+model Athlete {
+  id          Int     @id @default(autoincrement())
+  lastName    String
+  firstName   String
+  birthYear   Int
+  gender      AthleteGender  @default(M) // M or F
+  currentRank String  @default("NONE") // MSMK, MS, KMSU, R1, R2, R3, Y1, Y2, Y3, NONE
+  coach       String?
+  club        String
+  region      String?
+
+  entries Entry[]
+  applications AthleteApplication[]
+
+  @@index([lastName, firstName])
+  @@index([club])
+  @@index([region])
+  @@index([club, lastName, firstName])
+}
+
+model AthleteApplication {
+  id             Int      @id @default(autoincrement())
+  athleteId      Int
+  competitionId  Int?
+  currentRank    String   @default("NONE")
+  coach          String?
+  club           String
+  region         String?
+  doctorApproved Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  athlete     Athlete                  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  competition Competition?             @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  items       AthleteApplicationItem[]
+
+  @@index([athleteId, createdAt])
+  @@index([competitionId, createdAt])
+  @@index([region, club])
+}
+
+model AthleteApplicationItem {
+  id             Int      @id @default(autoincrement())
+  applicationId  Int
+  distanceM      Int
+  style          SwimStyle
+  gender         AthleteGender
+  entryTimeMs    Int?
+  createdAt      DateTime @default(now())
+
+  application AthleteApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([distanceM, style, gender])
+}
+
+model Event {
+  id            Int    @id @default(autoincrement())
+  competitionId Int
+  distance      Int
+  style         SwimStyle // FREE, BREAST, BACK, FLY, MEDLEY
+  gender        AthleteGender // M, F
+  name          String // auto: "50м Вільний стиль Чол."
+  isRelay       Boolean @default(false)
+  sortOrder     Int    @default(0)
+
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  entries     Entry[]
+
+  @@index([competitionId, sortOrder])
+  @@index([competitionId, gender, style, distance])
+}
+
+model Entry {
+  id             Int      @id @default(autoincrement())
+  athleteId      Int?
+  teamName       String?  // for relays
+  eventId        Int
+  entryTimeMs    Int?     // null = NT
+  heatNumber     Int?
+  laneNumber     Int?
+  ageGroupId     Int?
+  doctorApproved Boolean  @default(false)
+  status         EntryStatus   @default(IN) // IN, PK, DQ, DNS, DNF
+
+  athlete  Athlete?             @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  event    Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ageGroup CompetitionAgeGroup? @relation(fields: [ageGroupId], references: [id])
+  result   Result?
+
+  @@index([eventId, heatNumber])
+  @@index([eventId, laneNumber])
+  @@index([athleteId])
+  @@unique([athleteId, eventId])
+}
+
+model Result {
+  id           Int     @id @default(autoincrement())
+  entryId      Int     @unique
+  finishTimeMs Int?
+  pointsWa     Int?
+  achievedRank String? // MSMK, MS, KMSU, R1, R2, R3, Y1, Y2, Y3
+  place        Int?
+  placeDisplay String? // "І", "ІІ", "ІІІ", "4", "5"...
+  status       ResultStatus  @default(OK) // OK, DQ, DNS, DNF, PK
+  dqReason     String?
+  version      Int     @default(1)
+
+  entry Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([status, place])
+}
+
+model WaBaseTime {
+  id         Int @id @default(autoincrement())
+  year       Int
+  gender     String
+  distance   Int
+  style      String
+  poolLength Int
+  baseTimeMs Int
+
+  @@unique([year, gender, distance, style, poolLength])
+}
+
+model UaSportRank {
+  id         Int    @id @default(autoincrement())
+  poolLength Int
+  gender     String
+  distance   Int
+  style      String
+  rank       String // MSMK, MS, KMSU, R1, R2, R3, Y1, Y2, Y3
+  normTimeMs Int
+
+  @@unique([rank, poolLength, gender, distance, style])
+  @@index([distance, style, gender, poolLength])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entity    String
+  entityId  Int?
+  requestId String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId, createdAt])
+  @@index([requestId, createdAt])
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  passwordHash String
+  role         UserRole
+  isActive     Boolean   @default(true)
+  isApproved   Boolean   @default(false)
+  approvedAt   DateTime?
+  approvedBy   String?
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+  sessions     Session[]
+  competitions Competition[]
+  resultProtocolPresets ResultProtocolPreset[] @relation("ResultProtocolPresetOwner")
+  resultProtocolPreference UserResultProtocolPreference?
+
+  @@index([role, isActive])
+  @@index([isApproved, isActive])
+}
+
+model ResultProtocolPreset {
+  id            Int      @id @default(autoincrement())
+  competitionId Int
+  ownerUserId   Int
+  name          String
+  isShared      Boolean  @default(false)
+  configJson    Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  owner       User        @relation("ResultProtocolPresetOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  @@index([competitionId, isShared])
+  @@index([ownerUserId, competitionId])
+  @@unique([competitionId, ownerUserId, name])
+}
+
+model UserResultProtocolPreference {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  configJson Json
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+model FeatureFlag {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  enabled   Boolean
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

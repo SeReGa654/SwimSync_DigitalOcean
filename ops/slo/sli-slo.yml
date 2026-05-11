@@ -1,0 +1,17 @@
+service: swimsync
+period: 30d
+objectives:
+  - name: api-availability
+    description: Частка успішних API-відповідей
+    sli_query: 1 - (sum(rate(swimsync_http_errors_total[5m])) / clamp_min(sum(rate(swimsync_http_requests_total[5m])), 1))
+    target: 0.995
+  - name: api-latency-p95
+    description: P95 затримка відповідей API
+    sli_query: histogram_quantile(0.95, rate(swimsync_http_latency_ms_bucket[5m]))
+    target: 800
+    unit: ms
+alerts:
+  burn_rate:
+    short_window: 5m
+    long_window: 1h
+    threshold: 2

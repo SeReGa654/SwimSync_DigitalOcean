@@ -1,0 +1,3208 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Basic liveness probe for backend service",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Readiness probe with database check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health/dependencies": {
+      "get": {
+        "operationId": "HealthController_dependencies",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dependency health probe for DB/DOCX/Redis/Postgres",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health/metrics": {
+      "get": {
+        "operationId": "HealthController_metricsSnapshot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get internal metrics snapshot in JSON",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health/prometheus": {
+      "get": {
+        "operationId": "HealthController_prometheus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get Prometheus metrics output",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/competitions": {
+      "get": {
+        "operationId": "CompetitionsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List competitions",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "post": {
+        "operationId": "CompetitionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompetitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create competition",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/protocol-defaults/me": {
+      "get": {
+        "operationId": "CompetitionsController_getMyProtocolDefaults",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get my result protocol defaults",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "patch": {
+        "operationId": "CompetitionsController_saveMyProtocolDefaults",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveResultProtocolDefaultsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Save my result protocol defaults",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}": {
+      "get": {
+        "operationId": "CompetitionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get competition by id",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "patch": {
+        "operationId": "CompetitionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompetitionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update competition",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "delete": {
+        "operationId": "CompetitionsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete competition (admin only)",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}/age-groups": {
+      "get": {
+        "operationId": "CompetitionsController_getAgeGroups",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List age groups for competition",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "post": {
+        "operationId": "CompetitionsController_createAgeGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAgeGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create age group for competition",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}/result-protocol-config": {
+      "get": {
+        "operationId": "CompetitionsController_getResultProtocolConfigV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get result protocol configuration (v2)",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "patch": {
+        "description": "Configure protocol format, mixed groups, advanced grouping rules.",
+        "operationId": "CompetitionsController_setResultProtocolConfigV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultProtocolConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Set result protocol format for competition (v2)",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}/result-protocol-presets": {
+      "get": {
+        "operationId": "CompetitionsController_listResultProtocolPresets",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultProtocolPresetResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List result protocol presets for competition",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "post": {
+        "operationId": "CompetitionsController_createResultProtocolPreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateResultProtocolPresetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultProtocolPresetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create result protocol preset",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}/result-protocol-presets/{presetId}": {
+      "patch": {
+        "operationId": "CompetitionsController_updateResultProtocolPreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "presetId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResultProtocolPresetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultProtocolPresetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update result protocol preset",
+        "tags": [
+          "Competitions"
+        ]
+      },
+      "delete": {
+        "operationId": "CompetitionsController_deleteResultProtocolPreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "presetId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultProtocolPresetResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete result protocol preset",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/{id}/result-protocol-presets/{presetId}/apply": {
+      "post": {
+        "operationId": "CompetitionsController_applyResultProtocolPreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "presetId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Apply preset to competition protocol config",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/competitions/age-groups/{agId}": {
+      "delete": {
+        "operationId": "CompetitionsController_deleteAgeGroup",
+        "parameters": [
+          {
+            "name": "agId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete age group",
+        "tags": [
+          "Competitions"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Register new account request (pending admin approval)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Login with username/password and set auth cookies",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Logout current session and clear auth cookies",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/logout-all": {
+      "post": {
+        "operationId": "AuthController_logoutAll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Logout all sessions for current user and clear auth cookies",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/status": {
+      "get": {
+        "operationId": "AuthController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get current auth status from cookies/session",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "operationId": "AuthController_users",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List all users for admin management",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/approve": {
+      "patch": {
+        "operationId": "AuthController_approveUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Approve user registration request (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/activate": {
+      "patch": {
+        "operationId": "AuthController_activateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Activate user account (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/deactivate": {
+      "patch": {
+        "operationId": "AuthController_deactivateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Deactivate user account (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/reset-password": {
+      "patch": {
+        "operationId": "AuthController_resetUserPassword",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetUserPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Reset user password and revoke active sessions (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/sessions": {
+      "get": {
+        "operationId": "AuthController_userSessions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List active sessions for selected user (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/users/{userId}/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "AuthController_revokeUserSession",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Revoke selected user session (admin only)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/sessions": {
+      "get": {
+        "operationId": "AuthController_sessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List active sessions for current admin account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "AuthController_revokeSession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Revoke a specific active session for current admin account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/me/sessions": {
+      "get": {
+        "operationId": "AuthController_mySessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List active sessions for current authenticated account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/me/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "AuthController_revokeMySession",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Revoke selected active session for current authenticated account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Change password for current authenticated account and revoke other sessions",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/audit": {
+      "get": {
+        "operationId": "AuditController_getLogs",
+        "parameters": [
+          {
+            "name": "entity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requestId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "ISO date or YYYY-MM-DD",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "ISO date or YYYY-MM-DD",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Get audit logs with optional filters (admin only)",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/api/athletes": {
+      "get": {
+        "operationId": "AthletesController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "gender",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "M",
+                "F"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "club",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List athletes with optional search/limit",
+        "tags": [
+          "Athletes"
+        ]
+      },
+      "post": {
+        "operationId": "AthletesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAthleteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create athlete",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/database/tree": {
+      "get": {
+        "operationId": "AthletesController_getDatabaseTree",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "direction",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "lastName",
+                "firstName",
+                "birthYear",
+                "createdAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "gender",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "M",
+                "F"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "club",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "region",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get athlete database tree grouped by region and club",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/database/athletes/{id}/applications": {
+      "get": {
+        "operationId": "AthletesController_getAthleteApplications",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get historical imported application snapshots for athlete",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/database/named-application-docx": {
+      "post": {
+        "operationId": "AthletesController_generateNamedApplicationDocx",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Generate DOCX for named application via DOCX service",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/import-template": {
+      "get": {
+        "operationId": "AthletesController_getTemplate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Download CSV template for athletes import",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/{id}": {
+      "get": {
+        "operationId": "AthletesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get athlete by id",
+        "tags": [
+          "Athletes"
+        ]
+      },
+      "patch": {
+        "operationId": "AthletesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAthleteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update athlete",
+        "tags": [
+          "Athletes"
+        ]
+      },
+      "delete": {
+        "operationId": "AthletesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete athlete",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/parse-preview": {
+      "post": {
+        "operationId": "AthletesController_parsePreview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Parse import file and return preview without saving",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/confirm-import": {
+      "post": {
+        "operationId": "AthletesController_confirmImport",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmImportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Save previously parsed import payload into competition",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/athletes/import": {
+      "post": {
+        "operationId": "AthletesController_importFile",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Direct import file and save in one step",
+        "tags": [
+          "Athletes"
+        ]
+      }
+    },
+    "/api/feature-flags/effective": {
+      "get": {
+        "operationId": "FeatureFlagsController_listEffectiveFlags",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List effective feature flags for authenticated roles",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/feature-flags": {
+      "get": {
+        "operationId": "FeatureFlagsController_listFlags",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List feature flags with effective values (admin only)",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/feature-flags/{key}": {
+      "get": {
+        "operationId": "FeatureFlagsController_getFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Get single feature flag by key (admin only)",
+        "tags": [
+          "Feature Flags"
+        ]
+      },
+      "patch": {
+        "operationId": "FeatureFlagsController_updateFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update feature flag state (admin only)",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/events": {
+      "get": {
+        "operationId": "EventsController_findByCompetition",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List events by competition id",
+        "tags": [
+          "Events"
+        ]
+      },
+      "post": {
+        "operationId": "EventsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create event",
+        "tags": [
+          "Events"
+        ]
+      }
+    },
+    "/api/events/{id}": {
+      "get": {
+        "operationId": "EventsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get event by id",
+        "tags": [
+          "Events"
+        ]
+      },
+      "delete": {
+        "operationId": "EventsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete event",
+        "tags": [
+          "Events"
+        ]
+      }
+    },
+    "/api/events/reorder": {
+      "patch": {
+        "operationId": "EventsController_reorder",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Reorder events for protocol generation",
+        "tags": [
+          "Events"
+        ]
+      }
+    },
+    "/api/entries": {
+      "get": {
+        "operationId": "EntriesController_find",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "competitionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List entries by eventId or competitionId",
+        "tags": [
+          "Entries"
+        ]
+      },
+      "post": {
+        "operationId": "EntriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create entry",
+        "tags": [
+          "Entries"
+        ]
+      }
+    },
+    "/api/entries/{id}": {
+      "patch": {
+        "operationId": "EntriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update entry",
+        "tags": [
+          "Entries"
+        ]
+      },
+      "delete": {
+        "operationId": "EntriesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete entry",
+        "tags": [
+          "Entries"
+        ]
+      }
+    },
+    "/api/seeding/generate/{eventId}": {
+      "post": {
+        "operationId": "SeedingController_generate",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Generate lane seeding for one event",
+        "tags": [
+          "Seeding"
+        ]
+      }
+    },
+    "/api/seeding/generate-all/{competitionId}": {
+      "post": {
+        "operationId": "SeedingController_generateAll",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Generate lane seeding for all events in competition",
+        "tags": [
+          "Seeding"
+        ]
+      }
+    },
+    "/api/seeding/{eventId}": {
+      "delete": {
+        "operationId": "SeedingController_clear",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Clear seeding for event",
+        "tags": [
+          "Seeding"
+        ]
+      }
+    },
+    "/api/results/save": {
+      "post": {
+        "operationId": "ResultsController_saveResult",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveResultRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Save result for a single entry",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/api/results/save-heat": {
+      "post": {
+        "operationId": "ResultsController_saveHeatResults",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveHeatResultsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Save results for all entries in current heat",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/api/results/finalize/{eventId}": {
+      "post": {
+        "operationId": "ResultsController_finalize",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Finalize event results",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/api/results/unfinalize/{eventId}": {
+      "post": {
+        "operationId": "ResultsController_unfinalize",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Revert event finalization",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/api/results": {
+      "get": {
+        "operationId": "ResultsController_getEventResults",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get results by event id",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/api/wa-base-times": {
+      "get": {
+        "operationId": "WaBaseTimesController_findAll",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "poolLength",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List WA base times, optionally filtered by year and pool length",
+        "tags": [
+          "WA Base Times"
+        ]
+      },
+      "post": {
+        "operationId": "WaBaseTimesController_upsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertWaBaseTimeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create or update WA base time row (admin only)",
+        "tags": [
+          "WA Base Times"
+        ]
+      }
+    },
+    "/api/wa-base-times/{id}": {
+      "delete": {
+        "operationId": "WaBaseTimesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete WA base time row (admin only)",
+        "tags": [
+          "WA Base Times"
+        ]
+      }
+    },
+    "/api/ua-sport-ranks": {
+      "get": {
+        "operationId": "UaSportRanksController_findAll",
+        "parameters": [
+          {
+            "name": "poolLength",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List UA sport rank rules, optionally by pool length",
+        "tags": [
+          "UA Sport Ranks"
+        ]
+      },
+      "post": {
+        "operationId": "UaSportRanksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUaSportRankDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create UA sport rank rule (admin only)",
+        "tags": [
+          "UA Sport Ranks"
+        ]
+      }
+    },
+    "/api/ua-sport-ranks/{id}": {
+      "patch": {
+        "operationId": "UaSportRanksController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUaSportRankDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update UA sport rank rule (admin only)",
+        "tags": [
+          "UA Sport Ranks"
+        ]
+      },
+      "delete": {
+        "operationId": "UaSportRanksController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Delete UA sport rank rule (admin only)",
+        "tags": [
+          "UA Sport Ranks"
+        ]
+      }
+    },
+    "/api/export/docx-jobs/{kind}/{competitionId}": {
+      "post": {
+        "operationId": "ExportController_submitDocxJob",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Submit async DOCX export job for competition",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/docx-jobs/{jobId}": {
+      "get": {
+        "operationId": "ExportController_getDocxJobStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Get DOCX export job status",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/docx-jobs/{jobId}/download": {
+      "get": {
+        "operationId": "ExportController_downloadDocxJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download generated DOCX from async job",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/start-protocol-docx/{competitionId}": {
+      "get": {
+        "operationId": "ExportController_startProtocolDocx",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download start protocol DOCX by competition id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/result-protocol-docx/{competitionId}": {
+      "get": {
+        "operationId": "ExportController_resultProtocolDocx",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download result protocol DOCX by competition id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/start-protocol/{eventId}": {
+      "get": {
+        "operationId": "ExportController_startProtocolExcel",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download start protocol XLSX by event id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/finish-protocol/{eventId}": {
+      "get": {
+        "operationId": "ExportController_finishProtocolExcel",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download finish protocol XLSX by event id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/start-protocol-preview/{competitionId}": {
+      "get": {
+        "operationId": "ExportController_startProtocolPreview",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Get JSON preview of start protocol by competition id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/export/result-protocol-preview/{competitionId}": {
+      "get": {
+        "operationId": "ExportController_resultProtocolPreview",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Get JSON preview of result protocol by competition id",
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/standings/{compId}": {
+      "get": {
+        "operationId": "StandingsController_getStandings",
+        "parameters": [
+          {
+            "name": "compId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get standings for competition",
+        "tags": [
+          "Standings"
+        ]
+      }
+    },
+    "/api/support/tickets": {
+      "post": {
+        "operationId": "SupportController_createTicket",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupportTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create support ticket from authenticated user context",
+        "tags": [
+          "Support"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "SwimSync API",
+    "description": "REST API for SwimSync services",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "admin_token"
+      }
+    },
+    "schemas": {
+      "ResultProtocolConditionDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "ageGroupId",
+              "region",
+              "club",
+              "gender"
+            ]
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "EQ",
+              "IN",
+              "CONTAINS"
+            ]
+          },
+          "value": {
+            "description": "Condition value. For IN use array, for EQ/CONTAINS use scalar.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ]
+      },
+      "ResultProtocolConditionBlockDto": {
+        "type": "object",
+        "properties": {
+          "operator": {
+            "type": "string",
+            "enum": [
+              "AND",
+              "OR"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultProtocolConditionDto"
+            }
+          }
+        },
+        "required": [
+          "operator",
+          "conditions"
+        ]
+      },
+      "ResultProtocolRuleGroupDto": {
+        "type": "object",
+        "properties": {
+          "operator": {
+            "type": "string",
+            "enum": [
+              "AND",
+              "OR"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultProtocolConditionDto"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "subgroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultProtocolConditionBlockDto"
+            }
+          }
+        },
+        "required": [
+          "operator",
+          "conditions",
+          "name"
+        ]
+      },
+      "ResultProtocolAdvancedGroupingDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultProtocolRuleGroupDto"
+            }
+          },
+          "includeUnmatched": {
+            "type": "boolean",
+            "default": true
+          },
+          "unmatchedGroupName": {
+            "type": "string",
+            "default": "Інші"
+          }
+        },
+        "required": [
+          "enabled",
+          "groups",
+          "includeUnmatched"
+        ]
+      },
+      "ResultProtocolConfigDto": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "SEPARATE",
+              "COMBINED",
+              "MIXED"
+            ],
+            "description": "Result protocol format"
+          },
+          "mixedFormatPrimaryAgeGroupId": {
+            "type": "number",
+            "nullable": true,
+            "description": "Primary age group ID for MIXED format"
+          },
+          "mixedFormatSecondaryAgeGroupIds": {
+            "description": "Secondary age group IDs for MIXED format",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "advancedGrouping": {
+            "nullable": true,
+            "description": "Advanced custom grouping config (rules with AND/OR blocks, max 2 levels)",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResultProtocolAdvancedGroupingDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "format"
+        ]
+      },
+      "SaveResultProtocolDefaultsDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/ResultProtocolConfigDto"
+          }
+        },
+        "required": [
+          "config"
+        ]
+      },
+      "CreateCompetitionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateAgeGroupDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResultProtocolPresetResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "competitionId": {
+            "type": "number"
+          },
+          "ownerUserId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isShared": {
+            "type": "boolean"
+          },
+          "configJson": {
+            "$ref": "#/components/schemas/ResultProtocolConfigDto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "competitionId",
+          "ownerUserId",
+          "name",
+          "isShared",
+          "configJson",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateResultProtocolPresetDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isShared": {
+            "type": "boolean",
+            "default": false
+          },
+          "config": {
+            "$ref": "#/components/schemas/ResultProtocolConfigDto"
+          }
+        },
+        "required": [
+          "name",
+          "config"
+        ]
+      },
+      "UpdateResultProtocolPresetDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isShared": {
+            "type": "boolean"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ResultProtocolConfigDto"
+          }
+        }
+      },
+      "CompetitionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categoriesStr": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "venue": {
+            "type": "string"
+          },
+          "poolLength": {
+            "type": "number"
+          },
+          "lanes": {
+            "type": "number"
+          },
+          "dateFrom": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dateTo": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "completed"
+            ]
+          },
+          "circularSeeding": {
+            "type": "boolean"
+          },
+          "resultProtocolFormat": {
+            "type": "string",
+            "enum": [
+              "SEPARATE",
+              "COMBINED",
+              "MIXED"
+            ]
+          },
+          "mixedFormatPrimaryAgeGroupId": {
+            "type": "number",
+            "nullable": true
+          },
+          "mixedFormatSecondaryAgeGroupIds": {
+            "type": "string",
+            "nullable": true
+          },
+          "resultProtocolConfigJson": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResultProtocolConfigDto"
+              }
+            ]
+          },
+          "createdByUserId": {
+            "type": "number",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "categoriesStr",
+          "location",
+          "venue",
+          "poolLength",
+          "lanes",
+          "status",
+          "circularSeeding",
+          "resultProtocolFormat",
+          "createdAt"
+        ]
+      },
+      "UpdateCompetitionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterUserDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AdminLoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResetUserPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateAthleteDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateAthleteDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ConfirmImportDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateEventDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateEntryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateEntryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SaveResultRequestDto": {
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "number"
+          },
+          "finishTimeMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "OK | DNS | DNF | DQ | PK"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "entryId",
+          "status"
+        ]
+      },
+      "SaveHeatResultItemDto": {
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "number"
+          },
+          "finishTimeMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "OK | DNS | DNF | DQ | PK"
+          }
+        },
+        "required": [
+          "entryId",
+          "status"
+        ]
+      },
+      "SaveHeatResultsRequestDto": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaveHeatResultItemDto"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "UpsertWaBaseTimeRequestDto": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "number"
+          },
+          "style": {
+            "type": "string"
+          },
+          "poolLength": {
+            "type": "number"
+          },
+          "baseTimeMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "year",
+          "gender",
+          "distance",
+          "style",
+          "poolLength",
+          "baseTimeMs"
+        ]
+      },
+      "CreateUaSportRankDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateUaSportRankDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateSupportTicketDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

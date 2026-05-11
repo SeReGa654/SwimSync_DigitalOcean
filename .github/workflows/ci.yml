@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install docx-service dependencies
+        run: pip install -r docx-service/requirements.txt
+
+      - name: Security audit (blocking)
+        run: node ops/scripts/audit-prod-deps.mjs
+
+      - name: Generate Prisma client
+        run: npm --prefix backend exec prisma generate
+
+      - name: Generate OpenAPI contracts
+        run: npm run contracts:generate
+
+      - name: Validate migration guardrails
+        run: npm run ops:check-migration-guardrails
+
+      - name: Validate deploy readiness
+        run: npm run ops:check-deploy-readiness
+
+      - name: Prepare production env file for compose validation
+        run: cp .env.production.example .env.production
+
+      - name: Validate production env contract
+        run: npm run ops:check-prod-env -- .env.production --allow-placeholders
+
+      - name: Validate production compose config
+        run: docker compose -f docker-compose.production.yml --env-file .env.production config -q
+
+      - name: Typecheck backend
+        run: npm --prefix backend run typecheck
+
+      - name: Typecheck frontend
+        run: npm --prefix frontend run typecheck
+
+      - name: Run backend tests with coverage gate
+        run: npm --prefix backend run test:unit:coverage
+
+      - name: Run frontend tests with coverage gate
+        run: npm --prefix frontend run test:unit:coverage
+
+      - name: Run docx-service tests
+        run: pytest docx-service/tests -q
+
+      - name: Validate docx worker import
+        run: python -c "import sys; sys.path.insert(0, 'docx-service'); import worker"
+
+      - name: Build workspace
+        run: npm run build
+
+      - name: Build production Docker images
+        run: docker compose -f docker-compose.production.yml --env-file .env.production build
+
+      - name: Upload frontend preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-preview
+          path: frontend/.next-prod
