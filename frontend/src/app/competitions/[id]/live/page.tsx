@@ -27,23 +27,22 @@ export default function LiveResults({ params }: { params: Promise<{ id: string }
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   const loadResults = useCallback(async (eventId: number) => {
-    const entries = await api.getEntries(eventId);
-    const withResults = entries.filter((e): e is LiveEntry => Boolean(e.result));
-    withResults.sort((a, b) => {
+    const entries = (await api.getResults(eventId)) as LiveEntry[];
+    entries.sort((a, b) => {
       if (a.result.status !== 'OK' && b.result.status !== 'OK') return 0;
       if (a.result.status !== 'OK') return 1;
       if (b.result.status !== 'OK') return -1;
       return (a.result.place || 999) - (b.result.place || 999);
     });
-    setResults(withResults);
+    setResults(entries);
     setLastUpdate(new Date());
   }, []);
 
   useEffect(() => {
     (async () => {
-      const c = await api.getCompetition(compId);
+      const c = await api.getPublicCompetition(compId);
       setComp(c);
-      const ev = await api.getEvents(compId);
+      const ev = await api.getPublicEvents(compId);
       setEvents(ev);
       if (ev.length > 0) {
         setSelectedEventId(ev[0].id);

@@ -114,14 +114,17 @@ model Athlete {
   coach       String?
   club        String
   region      String?
+  createdByUserId Int?
 
   entries Entry[]
   applications AthleteApplication[]
+  createdByUser User? @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([lastName, firstName])
   @@index([club])
   @@index([region])
   @@index([club, lastName, firstName])
+  @@index([createdByUserId, lastName, firstName])
 }
 
 model AthleteApplication {
@@ -270,6 +273,7 @@ model User {
   lastLoginAt  DateTime?
   sessions     Session[]
   competitions Competition[]
+  athletes     Athlete[]
   resultProtocolPresets ResultProtocolPreset[] @relation("ResultProtocolPresetOwner")
   resultProtocolPreference UserResultProtocolPreference?
 

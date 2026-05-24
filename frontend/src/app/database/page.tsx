@@ -79,10 +79,11 @@ export default function DatabasePage() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
       <section className="surface-elevated p-8">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Глобальна БД</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-2">База спортсменів</p>
         <h1 className="text-4xl font-black premium-hero-title">База даних спортсменів</h1>
         <p className="text-slate-300 mt-3">
-          Ієрархічне представлення: Регіони → Спортивні школи → Спортсмени. Всього у вибірці: <span className="font-bold text-white">{totalAthletes}</span>.
+          Ієрархічне представлення: Регіони → Спортивні школи → Спортсмени. Показуються лише доступні вам записи.
+          Всього у вибірці: <span className="font-bold text-white">{totalAthletes}</span>.
         </p>
       </section>
 

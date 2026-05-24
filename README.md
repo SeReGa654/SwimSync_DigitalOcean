@@ -96,7 +96,14 @@ npm run dev:frontend
 npm run dev:docx
 ```
 
-6. (Optional) Start the application stack via Docker Compose (backend + frontend + docx + postgres + redis).
+6. **(Recommended) Run all tests to verify setup**.
+
+```bash
+npm run test:quick              # Unit + E2E tests (should all pass)
+npm run smoke:fullstack         # Full-stack smoke test (Docker required)
+```
+
+7. (Optional) Start the application stack via Docker Compose (backend + frontend + docx + postgres + redis).
 
 ```bash
 npm run app:up
@@ -116,6 +123,63 @@ npm --prefix backend run test
 npm --prefix frontend run test
 npm run test:docx
 ```
+
+## 📋 Testing & Quality Assurance
+
+### Running Tests
+
+**Quick test suite** (recommended before commits):
+```bash
+npm run test:quick              # Backend unit + Frontend + E2E + DOCX service
+```
+
+**Individual test suites:**
+```bash
+npm --prefix backend run test:unit          # Backend unit tests only
+npm --prefix frontend run test              # Frontend unit + typecheck
+npm --prefix frontend run test:e2e          # Playwright E2E tests
+npm run test:docx                           # DOCX service pytest
+```
+
+**Full-stack verification** (requires Docker):
+```bash
+npm run app:up                              # Start full stack
+npm run smoke:fullstack                     # Run comprehensive smoke test
+```
+
+### Security Audit
+
+```bash
+npm run audit:prod              # Check for high/critical vulnerabilities
+```
+
+Currently: ✅ **0 critical, 0 high vulnerabilities**
+
+---
+
+## 🔒 Security & Access Control
+
+SwimSync enforces **strict role-based access control**:
+
+| Role | Permissions | Scope |
+|---|---|---|
+| **Admin** | System config, normatives, feature flags, user management | System-wide |
+| **Secretary** | Manage own competitions, import athletes, entry & results | Own competitions |
+| **Operator** | Heat seeding, live results viewing | Assigned competitions |
+| **Public (Guest)** | View public normatives, live scoreboard | Read-only |
+
+### Security Features
+
+✅ Role enforcement on all protected endpoints  
+✅ Athlete database scoped by creator (no cross-secretary data leakage)  
+✅ CSRF protection (X-CSRF-Token header validation)  
+✅ Session cookie httpOnly + SameSite=Lax  
+✅ Audit log with request ID for all mutations  
+✅ No hardcoded secrets; all environment-based  
+✅ No localhost URLs in production builds  
+✅ TypeScript strict mode enforced  
+
+---
 
 ## ⚙️ Environment Variables
 
@@ -206,9 +270,9 @@ npm run test:docx
 | `npm run app:down:prod` | Stop production stack |
 | `npm run app:pull:prod` | Pull latest container base images for production stack |
 | `npm run app:logs:prod` | Tail production stack logs |
-| `npm run prod:first-deploy` | Automated first production bootstrap (build + migrate + health checks) |
-| `npm run prod:update` | Pull, rebuild, migrate, and validate production rollout |
-| `npm run prod:rollback -- <git-ref>` | Roll back to a specific git ref and validate health |
+| `npm run prod:first-deploy` | Automated first production bootstrap (build + migrate + seed + health checks) |
+| `npm run prod:update` | Pull, rebuild, migrate, seed, and validate production rollout |
+| `npm run prod:rollback -- <git-ref>` | Roll back to a specific git ref, run migrate+seed, and validate health |
 | `npm run prod:backup -- [dir]` | Create PostgreSQL and Redis backups |
 | `npm run prod:restore -- <postgres.sql> <redis.rdb>` | Restore PostgreSQL and Redis backups |
 | `npm run prod:restart -- [service]` | Restart full stack or a single production service |

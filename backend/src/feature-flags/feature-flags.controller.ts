@@ -20,6 +20,7 @@ import type { AuthenticatedRequest } from '../common/guards/authenticated-reques
 @ApiTags('Feature Flags')
 @ApiCookieAuth()
 @UseGuards(SessionRoleGuard)
+@Roles('admin')
 @Controller('feature-flags')
 export class FeatureFlagsController {
   constructor(
@@ -28,7 +29,6 @@ export class FeatureFlagsController {
   ) {}
 
   @Get('effective')
-  @Roles('admin', 'secretary', 'operator')
   @ApiOperation({ summary: 'List effective feature flags for authenticated roles' })
   async listEffectiveFlags(): Promise<FeatureFlagsResponse> {
     const flags = await this.featureFlagsService.listFlags();

@@ -199,8 +199,9 @@ async function main() {
       { competition: { findUnique: async () => ({ id: 1, status: 'draft' }) } } as any,
       { isEnabled: async () => false } as any,
     );
+    const mockReq = { authSession: { userId: 1, role: 'secretary' } } as any;
     await assert.rejects(
-      () => controller.confirmImport(1, { athletes: [], entries: [], bulkEditApplied: true } as any),
+      () => controller.confirmImport(mockReq, 1, { athletes: [], entries: [], bulkEditApplied: true } as any),
       (error: unknown) => error instanceof ForbiddenException,
     );
   });
@@ -217,7 +218,8 @@ async function main() {
       { competition: { findUnique: async () => ({ id: 1, status: 'draft' }) } } as any,
       { isEnabled: async () => false } as any,
     );
-    const result = await controller.confirmImport(1, { athletes: [], entries: [], bulkEditApplied: false } as any);
+    const mockReq = { authSession: { userId: 1, role: 'secretary' } } as any;
+    const result = await controller.confirmImport(mockReq, 1, { athletes: [], entries: [], bulkEditApplied: false } as any);
     assert.equal(called, true);
     assert.deepEqual(result, { imported: 1, entries: 1 });
   });

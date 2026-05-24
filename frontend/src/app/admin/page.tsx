@@ -66,6 +66,10 @@ const systemLinks = [
   },
 ];
 
+const visibleSystemLinks = process.env.NODE_ENV === 'production'
+  ? systemLinks.filter((item) => item.href.startsWith('/'))
+  : systemLinks;
+
 export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -416,7 +420,7 @@ export default function AdminPage() {
       <div className="glass-card p-6 border-white/10 space-y-4">
         <h3 className="text-lg font-black text-white">Система та документація</h3>
         <div className="grid gap-3 md:grid-cols-2">
-          {systemLinks.map((item) => (
+          {visibleSystemLinks.map((item) => (
             item.external ? (
               <a
                 key={item.title}

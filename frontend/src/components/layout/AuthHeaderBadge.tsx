@@ -67,7 +67,7 @@ export default function AuthHeaderBadge() {
 
   if (!authenticated) {
     return (
-      <HeaderLink className="premium-badge text-slate-400 hover:text-white transition-colors">Гість</HeaderLink>
+      <HeaderLink className="premium-badge text-slate-400 hover:text-white transition-colors">Увійти</HeaderLink>
     );
   }
 

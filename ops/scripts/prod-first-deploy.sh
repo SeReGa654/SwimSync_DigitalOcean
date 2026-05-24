@@ -22,4 +22,5 @@ fi
 
 compose up -d --build
 compose exec -T backend npm --prefix backend run db:migrate:deploy
+compose exec -T backend npm --prefix backend run db:seed:prod
 "$ROOT_DIR/ops/scripts/prod-healthcheck.sh"

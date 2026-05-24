@@ -14,6 +14,6 @@ export class RegisterUserDto implements AuthRegisterRequest {
   password!: string;
 
   @IsString()
-  @IsIn(['admin', 'secretary'])
+  @IsIn(['secretary'])
   role!: AuthRole;
 }

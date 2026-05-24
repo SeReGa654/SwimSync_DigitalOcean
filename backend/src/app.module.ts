@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { MetricsService } from './observability/metrics.service';
 import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
 import { SupportModule } from './support/support.module';
+import { PublicModule } from './public/public.module';
 import { SessionAuthGuard } from './common/guards/session-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { CsrfGuard } from './common/guards/csrf.guard';
@@ -61,6 +62,7 @@ import { CompetitionOwnershipGuard } from './common/guards/competition-ownership
     AuthModule,
     FeatureFlagsModule,
     SupportModule,
+    PublicModule,
   ],
 })
 export class AppModule {}

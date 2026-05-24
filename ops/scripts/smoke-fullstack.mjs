@@ -1,6 +1,28 @@
+import { readFileSync } from 'node:fs';
+
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const DOCX_URL = process.env.DOCX_URL || 'http://localhost:3012';
+
+function loadLocalEnv() {
+  try {
+    const raw = readFileSync(new URL('../../.env.docker', import.meta.url), 'utf8');
+    return raw.split('\n').reduce((acc, line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return acc;
+      const [key, ...rest] = trimmed.split('=');
+      if (!key) return acc;
+      acc[key] = rest.join('=').trim();
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
+}
+
+const localEnv = loadLocalEnv();
+const SMOKE_USERNAME = process.env.SMOKE_USERNAME || localEnv.AUTH_BOOTSTRAP_ADMIN_USERNAME || 'admin';
+const SMOKE_PASSWORD = process.env.SMOKE_PASSWORD || localEnv.AUTH_BOOTSTRAP_ADMIN_PASSWORD || '';
 
 const SAMPLE_COMPETITION = {
   name: 'Smoke Championship',
@@ -42,22 +64,60 @@ async function expectStatus(name, response, expectedStatus) {
   }
 }
 
+async function ensureReachable(name, url) {
+  try {
+    const response = await fetch(url);
+    return response;
+  } catch (error) {
+    throw new Error(
+      `${name} is not reachable at ${url}. Start the full stack first (example: npm run app:up).`,
+    );
+  }
+}
+
 async function run() {
-  const frontendRes = await fetch(`${FRONTEND_URL}/`);
+  const frontendRes = await ensureReachable('frontend', `${FRONTEND_URL}/`);
   await expectStatus('frontend /', frontendRes, 200);
   const frontendHtml = await frontendRes.text();
   if (!frontendHtml.includes('<!DOCTYPE html>')) {
     throw new Error('frontend / returned unexpected payload');
   }
 
-  const healthRes = await fetch(`${BACKEND_URL}/api/health`);
+  const healthRes = await ensureReachable('backend', `${BACKEND_URL}/api/health`);
   await expectStatus('backend health', healthRes, 200);
   const health = await healthRes.json();
   if (health?.status !== 'ok') {
     throw new Error('backend health payload is invalid');
   }
 
-  const competitionsRes = await fetch(`${BACKEND_URL}/api/competitions`);
+  if (!SMOKE_PASSWORD) {
+    throw new Error('Smoke auth password is missing. Set SMOKE_PASSWORD or AUTH_BOOTSTRAP_ADMIN_PASSWORD in .env.docker');
+  }
+
+  const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: SMOKE_USERNAME, password: SMOKE_PASSWORD }),
+  });
+  if (![200, 201].includes(loginRes.status)) {
+    const body = await loginRes.text().catch(() => '');
+    throw new Error(`auth login failed: expected 200/201, got ${loginRes.status}. ${body}`.trim());
+  }
+  const setCookies = typeof loginRes.headers.getSetCookie === 'function'
+    ? loginRes.headers.getSetCookie()
+    : (loginRes.headers.get('set-cookie') ? [loginRes.headers.get('set-cookie')] : []);
+  const cookieHeader = setCookies
+    .map((cookie) => cookie.split(';')[0])
+    .filter(Boolean)
+    .join('; ');
+
+  if (!cookieHeader) {
+    throw new Error('auth login did not return cookies');
+  }
+
+  const competitionsRes = await fetch(`${BACKEND_URL}/api/competitions`, {
+    headers: { cookie: cookieHeader },
+  });
   await expectStatus('backend competitions', competitionsRes, 200);
   const competitions = await competitionsRes.json();
   if (!Array.isArray(competitions)) {
@@ -70,7 +130,7 @@ async function run() {
     throw new Error(`feature-flags auth guard failed: expected 401/403, got ${flagsUnauthorizedRes.status}. ${body}`.trim());
   }
 
-  const docsRes = await fetch(`${DOCX_URL}/docs`);
+  const docsRes = await ensureReachable('docx-service', `${DOCX_URL}/docs`);
   await expectStatus('docx /docs', docsRes, 200);
 
   const submitRes = await fetch(`${DOCX_URL}/jobs/start-protocol`, {

@@ -82,7 +82,7 @@ async function setupProtocolApi(page: Page, partial?: Partial<MockState>) {
     };
 
     if (path === '/api/auth/status' && method === 'GET') {
-      return json({ authenticated: true, role: 'secretary', username: 'tester' });
+      return json({ authenticated: true, userId: 7, role: 'secretary', username: 'tester' });
     }
 
     if (path === '/api/competitions/protocol-defaults/me') {

@@ -103,7 +103,7 @@ export default function SettingsTab({ comp, load }: Props) {
           setCurrentUserId(null);
           return;
         }
-        setAuthRole(status.role || null);
+        setAuthRole(status.role === 'admin' || status.role === 'secretary' ? status.role : null);
         setCurrentUserId(status.userId ?? null);
       })
       .catch(() => {
@@ -174,7 +174,7 @@ export default function SettingsTab({ comp, load }: Props) {
 
   const handleSaveProtocolConfig = async () => {
     if (!canManageProtocol) {
-      toast.error('Налаштуваннями протоколів можуть керувати лише адміністратор або секретар.');
+      toast.error('Налаштуваннями протоколів може керувати адміністратор або секретар.');
       return;
     }
     const loadingToast = toast.loading('Збереження налаштувань протокол...');
@@ -550,7 +550,7 @@ export default function SettingsTab({ comp, load }: Props) {
                 {ag.name} <span className="text-slate-500 font-medium ml-2">{ag.birthYearFrom} – {ag.birthYearTo} р.н.</span>
               </span>
               <button
-                onClick={() => api.deleteAgeGroup(ag.id).then(load)}
+                onClick={() => api.deleteAgeGroup(comp.id, ag.id).then(load)}
                 className="text-slate-600 hover:text-red-400 transition-colors p-1"
               >
                 <Trash2 className="w-4 h-4" />
@@ -1077,7 +1077,7 @@ export default function SettingsTab({ comp, load }: Props) {
                   </div>
                   {!canManageProtocol && (
                     <p className="text-[11px] text-amber-400">
-                      Редагування протоколів доступне лише ролям admin або secretary.
+                      Редагування протоколів доступне адміністратору або секретарю.
                     </p>
                   )}
                   <div className="space-y-2">

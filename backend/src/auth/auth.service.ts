@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { getAppEnv } from '../config/env';
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import type { AuthRole } from 'shared-contracts';
@@ -28,7 +28,9 @@ export interface ManagedAuthUser {
 }
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(private readonly prisma?: PrismaService) {}
 
   private getPrisma(): PrismaService {
@@ -36,6 +38,44 @@ export class AuthService {
       throw new Error('PrismaService is not available');
     }
     return this.prisma;
+  }
+
+  async onModuleInit(): Promise<void> {
+    const bootstrapPassword = process.env.AUTH_BOOTSTRAP_ADMIN_PASSWORD?.trim();
+    if (!bootstrapPassword) return;
+    const bootstrapUsername = (process.env.AUTH_BOOTSTRAP_ADMIN_USERNAME || 'admin').trim();
+    if (!bootstrapUsername) return;
+
+    const prisma = this.getPrisma();
+    const existing = await prisma.user.findUnique({ where: { username: bootstrapUsername } });
+    if (existing) {
+      if (!existing.isActive || !existing.isApproved || existing.role !== 'admin') {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            role: 'admin',
+            isActive: true,
+            isApproved: true,
+            approvedAt: existing.approvedAt ?? new Date(),
+            approvedBy: existing.approvedBy ?? 'bootstrap',
+          },
+        });
+      }
+      return;
+    }
+
+    await prisma.user.create({
+      data: {
+        username: bootstrapUsername,
+        passwordHash: this.hashPassword(bootstrapPassword),
+        role: 'admin',
+        isActive: true,
+        isApproved: true,
+        approvedAt: new Date(),
+        approvedBy: 'bootstrap',
+      },
+    });
+    this.logger.log(`Bootstrap admin created: ${bootstrapUsername}`);
   }
 
   getCookieConfig(): AdminCookieConfig {
@@ -146,7 +186,7 @@ export class AuthService {
   }
 
   async registerPendingUser(username: string, password: string, role: AuthRole): Promise<ManagedAuthUser | null> {
-    const normalizedRole = this.normalizeRole(role);
+    const normalizedRole = role === 'secretary' ? 'secretary' : null;
     if (!normalizedRole) return null;
     const normalizedUsername = username.trim();
     if (!normalizedUsername) return null;

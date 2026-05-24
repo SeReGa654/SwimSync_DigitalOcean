@@ -1,4 +1,4 @@
-import { ShieldCheck, Waves, FileCheck2, Activity } from 'lucide-react';
+import { ShieldCheck, Waves, FileCheck2, Activity, Calculator } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -37,13 +37,22 @@ export default function HomePage() {
             DOCX-черга підтримує статуси обробки та контроль завантаження результатів.
           </p>
         </div>
-        <div className="surface-elevated p-6 md:col-span-2">
+        <div className="surface-elevated p-6">
           <div className="flex items-center gap-2 text-primary-300 mb-3">
             <Activity className="w-5 h-5" />
             <h3 className="text-lg font-black text-white">Операційна прозорість</h3>
           </div>
           <p className="text-sm text-slate-300">
             Стан сервісів, метрики та аудит доступні в захищених розділах для відповідних ролей.
+          </p>
+        </div>
+        <div className="surface-elevated p-6">
+          <div className="flex items-center gap-2 text-primary-300 mb-3">
+            <Calculator className="w-5 h-5" />
+            <h3 className="text-lg font-black text-white">Система підрахунку очок (WA/FINA)</h3>
+          </div>
+          <p className="text-sm text-slate-300">
+            Інтегровані алгоритми для автоматичного нарахування балів за актуальними базовими часами World Aquatics для всіх стилів та дистанцій.
           </p>
         </div>
       </section>

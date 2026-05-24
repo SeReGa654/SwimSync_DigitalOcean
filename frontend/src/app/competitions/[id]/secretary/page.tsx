@@ -394,7 +394,7 @@ export default function SecretaryPage({ params }: { params: Promise<{ id: string
             <div className="inline-flex items-center gap-2 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-1">
               <Activity className="w-3.5 h-3.5" /> Панель введення даних
             </div>
-            <h2 className="text-3xl font-black text-white leading-tight">Секретаріат: {comp.name}</h2>
+            <h2 className="text-3xl font-black text-white leading-tight">Адмін-панель: {comp.name}</h2>
           </div>
         </div>
         <div className="flex gap-4">

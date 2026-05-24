@@ -132,6 +132,7 @@ export default function NormativesPage() {
 
   const [waForm, setWaForm] = useState<WaBaseTimeUpsertInput>(defaultWaForm);
   const [uaForm, setUaForm] = useState<UaSportRankCreateInput>(defaultUaForm);
+  const [editingWaId, setEditingWaId] = useState<number | null>(null);
   const [editingUaId, setEditingUaId] = useState<number | null>(null);
   const [waSort, setWaSort] = useState<{ key: WaSortKey; direction: SortDirection }>({ key: 'poolLength', direction: 'desc' });
   const [uaSort, setUaSort] = useState<{ key: UaSortKey; direction: SortDirection }>({ key: 'poolLength', direction: 'desc' });
@@ -303,12 +304,18 @@ export default function NormativesPage() {
     setSearchQuery('');
   };
 
-  const handleUpsertWa = async (event: FormEvent) => {
+  const handleSaveWa = async (event: FormEvent) => {
     event.preventDefault();
     const loadingToast = toast.loading('Збереження WA нормативу...');
     try {
-      await api.upsertWaBaseTime(waForm);
+      if (editingWaId) {
+        await api.updateWaBaseTime(editingWaId, waForm);
+      } else {
+        await api.upsertWaBaseTime(waForm);
+      }
       await reloadWa();
+      setWaForm(defaultWaForm);
+      setEditingWaId(null);
       toast.success('WA норматив збережено', { id: loadingToast });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Не вдалося зберегти WA норматив', { id: loadingToast });
@@ -321,6 +328,10 @@ export default function NormativesPage() {
     try {
       await api.deleteWaBaseTime(id);
       await reloadWa();
+      if (editingWaId === id) {
+        setEditingWaId(null);
+        setWaForm(defaultWaForm);
+      }
       toast.success('WA норматив видалено', { id: loadingToast });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Не вдалося видалити WA норматив', { id: loadingToast });
@@ -343,6 +354,18 @@ export default function NormativesPage() {
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Не вдалося зберегти норматив ФПУ', { id: loadingToast });
     }
+  };
+
+  const handleEditWa = (row: WaBaseTimeRow) => {
+    setEditingWaId(row.id);
+    setWaForm({
+      year: row.year,
+      gender: row.gender,
+      distance: row.distance,
+      style: row.style,
+      poolLength: row.poolLength,
+      baseTimeMs: row.baseTimeMs,
+    });
   };
 
   const handleDeleteUa = async (id: number) => {
@@ -565,7 +588,7 @@ export default function NormativesPage() {
       </div>
 
       {isAdmin && adminEditMode && activeTab === 'wa' && (
-        <form onSubmit={handleUpsertWa} className="glass-card p-4 border-white/10 grid grid-cols-1 md:grid-cols-6 gap-3">
+        <form onSubmit={handleSaveWa} className="glass-card p-4 border-white/10 grid grid-cols-1 md:grid-cols-6 gap-3">
           <input type="number" value={waForm.year} onChange={(event) => setWaForm((prev) => ({ ...prev, year: Number.parseInt(event.target.value, 10) || prev.year }))} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" placeholder="Рік" />
           <select value={waForm.gender} onChange={(event) => setWaForm((prev) => ({ ...prev, gender: event.target.value }))} className={SELECT_CLASS}>
             <option className={OPTION_CLASS} value="M">Чоловіки</option>
@@ -583,8 +606,22 @@ export default function NormativesPage() {
             <option className={OPTION_CLASS} value={25}>25м</option>
           </select>
           <input type="number" value={waForm.baseTimeMs} onChange={(event) => setWaForm((prev) => ({ ...prev, baseTimeMs: Number.parseInt(event.target.value, 10) || prev.baseTimeMs }))} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm" placeholder="Час (мс)" />
-          <div className="md:col-span-6 flex justify-end">
-            <button type="submit" className="btn-primary !px-4 !py-2 text-xs">Зберегти WA норматив</button>
+          <div className="md:col-span-6 flex justify-end gap-2">
+            {editingWaId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingWaId(null);
+                  setWaForm(defaultWaForm);
+                }}
+                className="btn-secondary !px-4 !py-2 text-xs"
+              >
+                Скасувати редагування
+              </button>
+            )}
+            <button type="submit" className="btn-primary !px-4 !py-2 text-xs">
+              {editingWaId ? 'Оновити WA норматив' : 'Зберегти WA норматив'}
+            </button>
           </div>
         </form>
       )}
@@ -655,14 +692,7 @@ export default function NormativesPage() {
                           <div className="inline-flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => setWaForm({
-                                year: row.year,
-                                gender: row.gender,
-                                distance: row.distance,
-                                style: row.style,
-                                poolLength: row.poolLength,
-                                baseTimeMs: row.baseTimeMs,
-                              })}
+                              onClick={() => handleEditWa(row)}
                               className="text-slate-300 hover:text-white transition-colors"
                             >
                               <Pencil className="w-4 h-4" />

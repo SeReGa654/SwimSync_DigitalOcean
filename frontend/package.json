@@ -19,14 +19,13 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.9.4",
     "lucide-react": "^0.468.0",
-    "next": "^15.3.1",
+    "next": "^15.5.18",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "shared-contracts": "*",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.0.2",
-    "xlsx": "^0.18.5"
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
@@ -38,6 +37,12 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^4.1.4",
     "typescript": "~5.8.2"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "next": {
+      "postcss": "^8.5.10"
+    }
   }
 }
 

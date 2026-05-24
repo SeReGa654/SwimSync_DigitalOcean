@@ -52,6 +52,7 @@ export default function OperatorDashboard() {
       .slice(0, 12)
       .join('\n');
   }, [prometheusRaw]);
+  const prometheusUrl = process.env.NODE_ENV === 'production' ? null : 'http://localhost:9090';
 
   return (
     <div className="space-y-6">
@@ -121,9 +122,13 @@ export default function OperatorDashboard() {
         <div className="glass-card p-5 border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-black text-white">Prometheus (sample)</h2>
-            <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" className="text-xs text-primary-400 hover:text-primary-300">
-              Відкрити Prometheus
-            </a>
+            {prometheusUrl ? (
+              <a href={prometheusUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-400 hover:text-primary-300">
+                Відкрити Prometheus
+              </a>
+            ) : (
+              <span className="text-xs text-slate-500">Prometheus сховано в production</span>
+            )}
           </div>
           <pre className="rounded-xl border border-white/10 bg-black/30 p-4 text-xs text-slate-300 overflow-auto max-h-[340px]">
             {prometheusPreview || 'Немає доступних метрик swimsync_*'}

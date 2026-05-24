@@ -3,7 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ResultStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Response } from 'express';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { appEnv } from '../config/env';
 import { createHash } from 'crypto';
 import { FeatureFlagsService } from '../feature-flags/feature-flags.service';
@@ -1074,7 +1074,7 @@ export class ExportController {
       orderBy: [{ heatNumber: 'asc' }, { laneNumber: 'asc' }],
     });
 
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     const wsData: ExportSheetCell[][] = [
       [`${event.competition.name} - ${event.name}`],
       [`${event.competition.location} | ${event.competition.poolLength}m Pool`],
@@ -1099,9 +1099,11 @@ export class ExportController {
       ]);
     }
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Start Protocol');
-    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const ws = wb.addWorksheet('Start Protocol');
+    for (const row of wsData) {
+      ws.addRow(row);
+    }
+    const buf = await wb.xlsx.writeBuffer();
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     const startFn = `Start_${event.name.replace(/\s+/g, '_')}.xlsx`;
@@ -1133,7 +1135,7 @@ export class ExportController {
       return (a.result!.place || 999) - (b.result!.place || 999);
     });
 
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
     const wsData: ExportSheetCell[][] = [
       [`${event.competition.name} - ${event.name} — ФІНІШНИЙ ПРОТОКОЛ`],
       [`${event.competition.location} | ${event.competition.poolLength}m Pool`],
@@ -1158,9 +1160,11 @@ export class ExportController {
       ]);
     }
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Result Protocol');
-    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const ws = wb.addWorksheet('Result Protocol');
+    for (const row of wsData) {
+      ws.addRow(row);
+    }
+    const buf = await wb.xlsx.writeBuffer();
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     const resultFn = `Result_${event.name.replace(/\s+/g, '_')}.xlsx`;

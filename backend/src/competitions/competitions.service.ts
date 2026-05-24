@@ -213,6 +213,13 @@ export class CompetitionsService {
     });
   }
 
+  findPublicOne(id: number) {
+    return this.prisma.competition.findFirst({
+      where: { id },
+      include: { ageGroups: true, events: true },
+    });
+  }
+
   async create(data: CreateCompetitionDto, createdByUserId: number) {
     const defaults = await this.prisma.userResultProtocolPreference.findUnique({
       where: { userId: createdByUserId },

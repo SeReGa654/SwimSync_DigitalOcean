@@ -73,13 +73,13 @@ class SaveHeatResultsRequestDto {
 
 @ApiTags('Results')
 @ApiExtraModels(SaveResultRequestDto, SaveHeatResultsRequestDto, SaveHeatResultItemDto)
+@Roles('admin', 'secretary')
 @Controller('results')
 export class ResultsController {
   constructor(private readonly service: ResultsService) {}
 
   @Post('save')
   @ApiCookieAuth()
-  @Roles('secretary', 'operator')
   @CompetitionScope('entryBody')
   @ApiOperation({ summary: 'Save result for a single entry' })
   @ApiBody({ schema: { $ref: getSchemaPath(SaveResultRequestDto) } })
@@ -89,7 +89,6 @@ export class ResultsController {
 
   @Post('save-heat')
   @ApiCookieAuth()
-  @Roles('secretary', 'operator')
   @CompetitionScope('resultsBodyEntries')
   @ApiOperation({ summary: 'Save results for all entries in current heat' })
   @ApiBody({ schema: { $ref: getSchemaPath(SaveHeatResultsRequestDto) } })
@@ -99,7 +98,6 @@ export class ResultsController {
 
   @Post('finalize/:eventId')
   @ApiCookieAuth()
-  @Roles('secretary', 'operator')
   @CompetitionScope('eventParam')
   @ApiOperation({ summary: 'Finalize event results' })
   finalize(@Param('eventId', ParseIntPipe) eventId: number) {
@@ -108,7 +106,6 @@ export class ResultsController {
 
   @Post('unfinalize/:eventId')
   @ApiCookieAuth()
-  @Roles('secretary', 'operator')
   @CompetitionScope('eventParam')
   @ApiOperation({ summary: 'Revert event finalization' })
   unfinalize(@Param('eventId', ParseIntPipe) eventId: number) {

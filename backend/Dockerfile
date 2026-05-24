@@ -23,8 +23,9 @@ COPY backend/package.json backend/package.json
 COPY frontend/package.json frontend/package.json
 COPY shared-contracts/package.json shared-contracts/package.json
 RUN npm ci --omit=dev
-COPY --from=build /app/backend/dist backend/dist
 COPY --from=build /app/backend/prisma backend/prisma
+RUN npx prisma generate --schema backend/prisma/schema.prisma
+COPY --from=build /app/backend/dist backend/dist
 RUN chown -R app:app /app
 USER app
 EXPOSE 3001

@@ -21,7 +21,8 @@
     "db:push:pg": "prisma db push",
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:status": "prisma migrate status"
+    "db:status": "prisma migrate status",
+    "db:seed:prod": "node prisma/seed.js"
   },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
@@ -34,7 +35,8 @@
     "@prisma/client": "^6.19.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "express-rate-limit": "^8.3.2",
+    "exceljs": "^4.4.0",
+    "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
     "multer": "^1.4.5-lts.2",
     "papaparse": "^5.5.3",
@@ -43,8 +45,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "shared-contracts": "*",
-    "swagger-ui-express": "^5.0.1",
-    "xlsx": "^0.18.5"
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",
@@ -57,8 +58,5 @@
     "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }

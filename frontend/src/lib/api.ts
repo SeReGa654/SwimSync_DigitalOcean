@@ -489,7 +489,7 @@ export const api = {
   // Age Groups
   getAgeGroups: (compId: number) => request<AgeGroup[]>(`/competitions/${compId}/age-groups`),
   createAgeGroup: (compId: number, data: Omit<AgeGroup, 'id' | 'competitionId'>) => request<AgeGroup>(`/competitions/${compId}/age-groups`, { method: 'POST', body: JSON.stringify(data) }),
-  deleteAgeGroup: (id: number) => request<{ deleted: boolean }>(`/competitions/age-groups/${id}`, { method: 'DELETE' }),
+  deleteAgeGroup: (compId: number, id: number) => request<{ deleted: boolean }>(`/competitions/${compId}/age-groups/${id}`, { method: 'DELETE' }),
   getResultProtocolConfig: (compId: number) => request<ResultProtocolConfig>(`/competitions/${compId}/result-protocol-config`),
   setResultProtocolConfig: (compId: number, data: ResultProtocolConfig) =>
     request<Competition>(`/competitions/${compId}/result-protocol-config`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -641,6 +641,8 @@ export const api = {
   finalizeEvent: (eventId: number) => request<{ finalized: boolean; eventId: number }>(`/results/finalize/${eventId}`, { method: 'POST' }),
   unfinalizeEvent: (eventId: number) => request<{ unfinalized: boolean; eventId: number }>(`/results/unfinalize/${eventId}`, { method: 'POST' }),
   getResults: (eventId: number) => request<Entry[]>(`/results?eventId=${eventId}`),
+  getPublicCompetition: (compId: number) => request<Competition>(`/public/competitions/${compId}`),
+  getPublicEvents: (compId: number) => request<Event[]>(`/public/events?competitionId=${compId}`),
 
   // Protocol Previews (JSON for browser rendering)
   getStartProtocolPreview: (compId: number) => request<StartProtocolPreview>(`/export/start-protocol-preview/${compId}`),
@@ -697,6 +699,11 @@ export const api = {
   upsertWaBaseTime: (data: WaBaseTimeUpsertInput) =>
     request<WaBaseTimeRow>('/wa-base-times', {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateWaBaseTime: (id: number, data: WaBaseTimeUpsertInput) =>
+    request<WaBaseTimeRow>(`/wa-base-times/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
   deleteWaBaseTime: (id: number) => request<{ deleted?: boolean }>(`/wa-base-times/${id}`, { method: 'DELETE' }),

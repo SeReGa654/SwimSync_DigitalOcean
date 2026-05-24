@@ -13,4 +13,6 @@ require_file "$ENV_FILE"
 git -C "$ROOT_DIR" fetch --all --tags
 git -C "$ROOT_DIR" checkout "$ref"
 compose up -d --build
+compose exec -T backend npm --prefix backend run db:migrate:deploy
+compose exec -T backend npm --prefix backend run db:seed:prod
 "$ROOT_DIR/ops/scripts/prod-healthcheck.sh"

@@ -286,7 +286,7 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
               dragOver ? 'border-primary-500 bg-primary-500/10' : 'border-white/10 hover:border-primary-500/30 hover:bg-white/[0.02] cursor-pointer'
             }`}
           >
-            <input ref={fileRef} type="file" accept=".docx,.csv,.xlsx,.xls" className="hidden"
+            <input ref={fileRef} type="file" accept=".docx,.csv,.xlsx" className="hidden"
               disabled={isLocked}
               onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
             

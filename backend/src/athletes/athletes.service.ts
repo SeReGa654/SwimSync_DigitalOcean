@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AthleteGender as PrismaAthleteGender, Prisma, SwimStyle } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import * as Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { parseTime } from '../utils/time.utils';
 import { CreateAthleteDto } from './dto/create-athlete.dto';
 import { UpdateAthleteDto } from './dto/update-athlete.dto';
+import type { AuthRole } from 'shared-contracts';
 
 type ImportCell = string | number | boolean | null | undefined;
 type ImportRow = Record<string, ImportCell>;
@@ -92,6 +93,11 @@ interface AthleteDatabaseQuery {
   limit?: number;
 }
 
+interface AthleteViewer {
+  role: AuthRole;
+  userId: number;
+}
+
 interface AthleteDatabaseTreeRegion {
   region: string;
   schools: Array<{
@@ -115,6 +121,10 @@ interface AthleteDatabaseTreeRegion {
 @Injectable()
 export class AthletesService {
   constructor(private prisma: PrismaService) {}
+
+  private scopeAthleteWhere(where: Prisma.AthleteWhereInput, viewer: AthleteViewer): Prisma.AthleteWhereInput {
+    return viewer.role === 'admin' ? where : { AND: [where, { createdByUserId: viewer.userId }] };
+  }
 
   private buildAthleteWhere(query?: {
     search?: string;
@@ -143,16 +153,16 @@ export class AthletesService {
     };
   }
 
-  async findAll(query?: { search?: string; region?: string; club?: string; gender?: AthleteGender; limit?: number }) {
+  async findAll(query: { search?: string; region?: string; club?: string; gender?: AthleteGender; limit?: number } | undefined, viewer: AthleteViewer) {
     const take = query?.limit ? Number(query.limit) : 200;
     return this.prisma.athlete.findMany({
-      where: this.buildAthleteWhere(query),
+      where: this.scopeAthleteWhere(this.buildAthleteWhere(query), viewer),
       take,
       orderBy: { lastName: 'asc' },
     });
   }
 
-  async getDatabaseTree(query?: AthleteDatabaseQuery): Promise<{ regions: AthleteDatabaseTreeRegion[]; totalAthletes: number }> {
+  async getDatabaseTree(query: AthleteDatabaseQuery | undefined, viewer: AthleteViewer): Promise<{ regions: AthleteDatabaseTreeRegion[]; totalAthletes: number }> {
     const direction: 'asc' | 'desc' = query?.direction === 'desc' ? 'desc' : 'asc';
     const limit = query?.limit ? Math.min(Math.max(Number(query.limit), 1), 1000) : 500;
     const sortField = query?.sort || 'lastName';
@@ -165,7 +175,7 @@ export class AthletesService {
             ? { id: direction }
             : { lastName: direction };
 
-    const where = this.buildAthleteWhere(query);
+    const where = this.scopeAthleteWhere(this.buildAthleteWhere(query), viewer);
 
     const athletes = await this.prisma.athlete.findMany({
       where,
@@ -219,7 +229,12 @@ export class AthletesService {
     return { regions, totalAthletes: athletes.length };
   }
 
-  async getAthleteApplicationHistory(athleteId: number) {
+  async getAthleteApplicationHistory(athleteId: number, viewer: AthleteViewer) {
+    const where = this.scopeAthleteWhere({ id: athleteId }, viewer);
+    const athlete = await this.prisma.athlete.findFirst({ where, select: { id: true } });
+    if (!athlete) {
+      throw new NotFoundException('Athlete not found');
+    }
     return this.prisma.athleteApplication.findMany({
       where: { athleteId },
       orderBy: { createdAt: 'desc' },
@@ -240,23 +255,31 @@ export class AthletesService {
     });
   }
 
-  findOne(id: number) {
-    return this.prisma.athlete.findUnique({
-      where: { id },
+  findOne(id: number, viewer: AthleteViewer) {
+    return this.prisma.athlete.findFirst({
+      where: this.scopeAthleteWhere({ id }, viewer),
       include: { entries: { include: { event: true, result: true } } },
     });
   }
 
-  create(data: CreateAthleteDto) {
+  create(data: CreateAthleteDto, viewer: AthleteViewer) {
     return this.prisma.athlete.create({
       data: {
         ...data,
         gender: this.normalizeAthleteGender(data.gender),
+        createdByUserId: viewer.userId,
       },
     });
   }
 
-  update(id: number, data: UpdateAthleteDto) {
+  async update(id: number, data: UpdateAthleteDto, viewer: AthleteViewer) {
+    const existing = await this.prisma.athlete.findFirst({
+      where: this.scopeAthleteWhere({ id }, viewer),
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Athlete not found');
+    }
     return this.prisma.athlete.update({
       where: { id },
       data: {
@@ -266,26 +289,31 @@ export class AthletesService {
     });
   }
 
-  delete(id: number) {
+  async delete(id: number, viewer: AthleteViewer) {
+    const existing = await this.prisma.athlete.findFirst({
+      where: this.scopeAthleteWhere({ id }, viewer),
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Athlete not found');
+    }
     return this.prisma.athlete.delete({ where: { id } });
   }
 
-  async importFromCsv(buffer: Buffer, competitionId: number) {
+  async importFromCsv(buffer: Buffer, competitionId: number, viewer: AthleteViewer) {
     const text = buffer.toString('utf-8');
     const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-    return this.processImportRows(result.data as ImportRow[], competitionId);
+    return this.processImportRows(result.data as ImportRow[], competitionId, viewer);
   }
 
-  async importFromExcel(buffer: Buffer, competitionId: number) {
-    const wb = XLSX.read(buffer, { type: 'buffer' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json<ImportRow>(ws);
-    return this.processImportRows(rows, competitionId);
+  async importFromExcel(buffer: Buffer, competitionId: number, viewer: AthleteViewer) {
+    const rows = await this.parseExcelRows(buffer);
+    return this.processImportRows(rows, competitionId, viewer);
   }
 
-  private async processImportRows(rows: ImportRow[], competitionId: number) {
+  private async processImportRows(rows: ImportRow[], competitionId: number, viewer: AthleteViewer) {
     const { athletes, entries } = this.parseRows(rows);
-    return this.confirmImport(competitionId, athletes, entries);
+    return this.confirmImport(competitionId, athletes, entries, viewer);
   }
 
   private cellText(value: ImportCell): string {
@@ -408,10 +436,63 @@ export class AthletesService {
   }
 
   async parseExcelPreview(buffer: Buffer) {
-    const wb = XLSX.read(buffer, { type: 'buffer' });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json<ImportRow>(ws);
+    const rows = await this.parseExcelRows(buffer);
     return this.buildPreviewResult(rows);
+  }
+
+  private excelCellToImportCell(value: ExcelJS.CellValue): ImportCell {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value;
+    if (value instanceof Date) return value.toISOString();
+    if (Array.isArray(value)) return value.map((item) => item.text || '').join('');
+    if (typeof value === 'object') {
+      if ('result' in value) return this.excelCellToImportCell(value.result ?? '');
+      if ('text' in value && typeof value.text === 'string') return value.text;
+      if ('richText' in value && Array.isArray(value.richText)) {
+        return value.richText.map((item) => item.text || '').join('');
+      }
+      if ('hyperlink' in value && typeof value.hyperlink === 'string') return value.hyperlink;
+      return '';
+    }
+    return '';
+  }
+
+  private async parseExcelRows(buffer: Buffer): Promise<ImportRow[]> {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) return [];
+
+    const headerRow = worksheet.getRow(1);
+    const columnCount = Math.max(headerRow.cellCount, headerRow.actualCellCount);
+    if (columnCount === 0) return [];
+
+    const headers = Array.from({ length: columnCount }, (_, index) =>
+      this.cellText(this.excelCellToImportCell(headerRow.getCell(index + 1).value)),
+    );
+
+    const rows: ImportRow[] = [];
+    for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
+      const row = worksheet.getRow(rowNumber);
+      const mapped: ImportRow = {};
+      let hasData = false;
+
+      for (let col = 1; col <= columnCount; col += 1) {
+        const header = headers[col - 1];
+        if (!header) continue;
+        const value = this.excelCellToImportCell(row.getCell(col).value);
+        mapped[header] = value;
+        if (this.cellText(value) !== '') {
+          hasData = true;
+        }
+      }
+
+      if (hasData) {
+        rows.push(mapped);
+      }
+    }
+
+    return rows;
   }
 
   private buildPreviewResult(rows: ImportRow[]) {
@@ -431,7 +512,7 @@ export class AthletesService {
   }
 
   /** Save previously parsed & reviewed data */
-  async confirmImport(competitionId: number, athletes: ConfirmImportAthleteInput[], entries: ConfirmImportEntryInput[]) {
+  async confirmImport(competitionId: number, athletes: ConfirmImportAthleteInput[], entries: ConfirmImportEntryInput[], viewer: AthleteViewer) {
     const styleUaMap: Record<string, string> = {
       'Freestyle': 'Вільний стиль', 'Breaststroke': 'Брас',
       'Backstroke': 'На спині', 'Butterfly': 'Батерфляй',
@@ -465,7 +546,9 @@ export class AthletesService {
         const birthYear = a.birthYear || a.birth_year || 2000;
         const key = `${lastName}||${firstName}||${birthYear}`;
         athleteKeyForIndex.set(i, key);
-        athleteWhereOr.push({ lastName, firstName, birthYear });
+        athleteWhereOr.push(viewer.role === 'admin'
+          ? { lastName, firstName, birthYear }
+          : { lastName, firstName, birthYear, createdByUserId: viewer.userId });
       }
 
       const existingAthletes = athleteWhereOr.length
@@ -494,7 +577,7 @@ export class AthletesService {
         let athleteRec = athleteKeyToRec.get(key);
         if (!athleteRec) {
           const created = await tx.athlete.create({
-            data: { lastName, firstName, birthYear, gender, currentRank: rank, coach, club, region },
+            data: { lastName, firstName, birthYear, gender, currentRank: rank, coach, club, region, createdByUserId: viewer.userId },
           });
           athleteRec = { id: created.id, lastName: created.lastName, firstName: created.firstName, birthYear: created.birthYear };
           athleteKeyToRec.set(key, athleteRec);

@@ -124,7 +124,6 @@ export default function CabinetPage() {
       { value: '/normatives', label: 'Нормативи' },
     ];
     if (role === 'admin') pages.push({ value: '/admin', label: 'Адмін-панель' });
-    if (role === 'secretary') pages.push({ value: '/secretary', label: 'Кабінет секретаря' });
     return pages;
   }, [role]);
 
@@ -275,8 +274,9 @@ export default function CabinetPage() {
             <section className="glass-card p-6 space-y-4">
               <p className="text-slate-300">Ви не авторизовані. Увійдіть, щоб бачити персональні дані і функції кабінету.</p>
               <div className="flex flex-wrap gap-3">
-                <AppLink href="/secretary" className="btn-primary">Увійти як секретар</AppLink>
-                <AppLink href="/admin" className="btn-secondary">Увійти як адмін</AppLink>
+                <AppLink href="/login" className="btn-primary">Увійти</AppLink>
+                <AppLink href="/secretary#register" className="btn-secondary">Зареєструватись</AppLink>
+                <AppLink href="/competitions" className="btn-secondary">До змагань</AppLink>
               </div>
             </section>
           ) : (
@@ -467,7 +467,6 @@ export default function CabinetPage() {
                   <AppLink href="/normatives" className="btn-secondary">Нормативи</AppLink>
                   {role === 'admin' && <AppLink href="/admin" className="btn-primary">Адмін-панель</AppLink>}
                   {role === 'admin' && <AppLink href="/logs" className="btn-secondary">Журнал аудиту</AppLink>}
-                  {role === 'secretary' && <AppLink href="/secretary" className="btn-primary">Кабінет секретаря</AppLink>}
                 </div>
               </section>
             </>

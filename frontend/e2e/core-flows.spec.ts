@@ -6,9 +6,18 @@ test('global 404 renders unified page', async ({ page }) => {
 });
 
 test('header role badge opens cabinet', async ({ page }) => {
+  await page.route('**/api/auth/status', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ authenticated: false }),
+    });
+  });
+
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Гість' })).toBeVisible();
-  await page.getByRole('link', { name: 'Гість' }).click();
+  const cabinetLink = page.locator('a[href="/cabinet"]').first();
+  await expect(cabinetLink).toBeVisible();
+  await cabinetLink.click();
   await expect(page).toHaveURL(/\/cabinet$/);
 });
 

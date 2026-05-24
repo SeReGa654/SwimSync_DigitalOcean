@@ -22,8 +22,11 @@ import { CompetitionResponseDto, ResultProtocolPresetResponseDto } from './dto/r
 import { ApiCookieAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import type { Request } from 'express';
+import { Roles } from '../common/decorators/roles.decorator';
+import { CompetitionScope } from '../common/decorators/competition-scope.decorator';
 
 @ApiTags('Competitions')
+@Roles('admin', 'secretary')
 @Controller('competitions')
 export class CompetitionsController {
   constructor(
@@ -65,6 +68,7 @@ export class CompetitionsController {
   }
 
   @Get(':id')
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Get competition by id' })
   async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const session = await this.resolveRequestSession(req);
@@ -85,6 +89,7 @@ export class CompetitionsController {
 
   // Age Groups - must come before generic :id routes
   @Get(':id/age-groups')
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'List age groups for competition' })
   async getAgeGroups(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const session = await this.resolveRequestSession(req);
@@ -93,6 +98,7 @@ export class CompetitionsController {
 
   @Post(':id/age-groups')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Create age group for competition' })
   createAgeGroup(
     @Param('id', ParseIntPipe) id: number,
@@ -102,6 +108,7 @@ export class CompetitionsController {
   }
 
   @Get(':id/result-protocol-config')
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Get result protocol configuration (v2)' })
   async getResultProtocolConfigV2(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const session = await this.resolveRequestSession(req);
@@ -110,6 +117,7 @@ export class CompetitionsController {
 
   @Patch(':id/result-protocol-config')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({
     summary: 'Set result protocol format for competition (v2)',
     description: 'Configure protocol format, mixed groups, advanced grouping rules.',
@@ -125,6 +133,7 @@ export class CompetitionsController {
 
   @Get(':id/result-protocol-presets')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'List result protocol presets for competition' })
   @ApiOkResponse({ type: ResultProtocolPresetResponseDto, isArray: true })
   async listResultProtocolPresets(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
@@ -134,6 +143,7 @@ export class CompetitionsController {
 
   @Post(':id/result-protocol-presets')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Create result protocol preset' })
   @ApiCreatedResponse({ type: ResultProtocolPresetResponseDto })
   async createResultProtocolPreset(
@@ -147,6 +157,7 @@ export class CompetitionsController {
 
   @Patch(':id/result-protocol-presets/:presetId')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Update result protocol preset' })
   @ApiOkResponse({ type: ResultProtocolPresetResponseDto })
   async updateResultProtocolPreset(
@@ -161,6 +172,7 @@ export class CompetitionsController {
 
   @Delete(':id/result-protocol-presets/:presetId')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Delete result protocol preset' })
   @ApiOkResponse({ type: ResultProtocolPresetResponseDto })
   async deleteResultProtocolPreset(
@@ -174,6 +186,7 @@ export class CompetitionsController {
 
   @Post(':id/result-protocol-presets/:presetId/apply')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Apply preset to competition protocol config' })
   @ApiCreatedResponse({ type: CompetitionResponseDto })
   async applyResultProtocolPreset(
@@ -187,6 +200,7 @@ export class CompetitionsController {
 
   @Patch(':id')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Update competition' })
   update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCompetitionDto) {
     return this.service.update(id, body);
@@ -194,13 +208,15 @@ export class CompetitionsController {
 
   @Delete(':id')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Delete competition (admin only)' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
   }
 
-  @Delete('age-groups/:agId')
+  @Delete(':id/age-groups/:agId')
   @ApiCookieAuth()
+  @CompetitionScope('competitionParam')
   @ApiOperation({ summary: 'Delete age group' })
   deleteAgeGroup(@Param('agId', ParseIntPipe) agId: number) {
     return this.service.deleteAgeGroup(agId);

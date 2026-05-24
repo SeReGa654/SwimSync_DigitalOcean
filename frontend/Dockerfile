@@ -11,8 +11,12 @@ RUN npm ci
 FROM deps AS build
 COPY frontend frontend
 COPY shared-contracts shared-contracts
+ARG BACKEND_API_URL
+ARG NEXT_PUBLIC_WS_URL
 ENV NODE_ENV=production
 ENV NEXT_DIST_DIR=.next-prod
+ENV BACKEND_API_URL=${BACKEND_API_URL}
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 RUN npm --prefix frontend run build
 
 FROM node:20-alpine AS runtime

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UploadedFile, UseInterceptors, Query, Res, ForbiddenException, BadRequestException, BadGatewayException, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UploadedFile, UseInterceptors, Query, Res, ForbiddenException, BadRequestException, BadGatewayException, Logger, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SwimStyle } from '@prisma/client';
 import { AthletesService } from './athletes.service';
@@ -10,6 +10,8 @@ import { ConfirmImportDto } from './dto/confirm-import.dto';
 import { appEnv } from '../config/env';
 import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FeatureFlagsService } from '../feature-flags/feature-flags.service';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedRequest } from '../common/guards/authenticated-request';
 
 const DOCX_SERVICE = appEnv.docxServiceUrl;
 
@@ -72,6 +74,7 @@ interface NamedApplicationDocxRequest {
 }
 
 @ApiTags('Athletes')
+@Roles('admin', 'secretary')
 @Controller('athletes')
 export class AthletesController {
   private readonly logger = new Logger(AthletesController.name);
@@ -89,8 +92,13 @@ export class AthletesController {
   @ApiQuery({ name: 'club', required: false, type: String })
   @ApiQuery({ name: 'gender', required: false, enum: ['M', 'F'] })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  findAll(@Query() query: { search?: string; region?: string; club?: string; gender?: 'M' | 'F'; limit?: number }) {
-    return this.service.findAll(query);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: { search?: string; region?: string; club?: string; gender?: 'M' | 'F'; limit?: number },
+  ) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.findAll(query, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Get('database/tree')
@@ -103,6 +111,7 @@ export class AthletesController {
   @ApiQuery({ name: 'direction', required: false, enum: ['asc', 'desc'] })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getDatabaseTree(
+    @Req() req: AuthenticatedRequest,
     @Query() query: {
       search?: string;
       region?: string;
@@ -113,13 +122,17 @@ export class AthletesController {
       limit?: number;
     },
   ): Promise<unknown> {
-    return this.service.getDatabaseTree(query);
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.getDatabaseTree(query, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Get('database/athletes/:id/applications')
   @ApiOperation({ summary: 'Get historical imported application snapshots for athlete' })
-  getAthleteApplications(@Param('id', ParseIntPipe) athleteId: number) {
-    return this.service.getAthleteApplicationHistory(athleteId);
+  getAthleteApplications(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) athleteId: number) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.getAthleteApplicationHistory(athleteId, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Post('database/named-application-docx')
@@ -168,29 +181,37 @@ export class AthletesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get athlete by id' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOne(id);
+  findOne(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.findOne(id, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Post()
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create athlete' })
-  create(@Body() body: CreateAthleteDto) {
-    return this.service.create(body);
+  create(@Req() req: AuthenticatedRequest, @Body() body: CreateAthleteDto) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.create(body, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Patch(':id')
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update athlete' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateAthleteDto) {
-    return this.service.update(id, body);
+  update(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number, @Body() body: UpdateAthleteDto) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.update(id, body, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   @Delete(':id')
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Delete athlete' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.service.delete(id);
+  delete(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number) {
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.delete(id, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 
   /**
@@ -251,7 +272,10 @@ export class AthletesController {
       }
     }
 
-    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+    if (name.endsWith('.xls')) {
+      throw new BadRequestException('Формат .xls більше не підтримується. Використайте .xlsx.');
+    }
+    if (name.endsWith('.xlsx')) {
       return this.service.parseExcelPreview(file.buffer);
     }
     return this.service.parseCsvPreview(file.buffer);
@@ -265,6 +289,7 @@ export class AthletesController {
   @ApiOperation({ summary: 'Save previously parsed import payload into competition' })
   @ApiQuery({ name: 'competitionId', required: true, type: Number })
   async confirmImport(
+    @Req() req: AuthenticatedRequest,
     @Query('competitionId', ParseIntPipe) competitionId: number,
     @Body() data: ConfirmImportDto,
   ) {
@@ -279,7 +304,14 @@ export class AthletesController {
         throw new ForbiddenException('Масове редагування під час імпорту вимкнено адміністратором.');
       }
     }
-    return this.service.confirmImport(competitionId, data.athletes, data.entries);
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
+    return this.service.confirmImport(
+      competitionId,
+      data.athletes,
+      data.entries,
+      { role: session.role as 'admin' | 'secretary', userId: session.userId },
+    );
   }
 
   /**
@@ -301,6 +333,7 @@ export class AthletesController {
     },
   })
   async importFile(
+    @Req() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
     @Query('competitionId', ParseIntPipe) competitionId: number,
   ) {
@@ -312,6 +345,8 @@ export class AthletesController {
     if (comp && comp.status !== 'draft') {
       throw new ForbiddenException(`Імпорт заблоковано: змагання має статус "${comp.status}". Поверніть його в чернетку.`);
     }
+    const session = req.authSession;
+    if (!session) throw new ForbiddenException('Unauthorized: invalid auth session');
     const name = file.originalname.toLowerCase();
 
     if (name.endsWith('.docx')) {
@@ -326,7 +361,12 @@ export class AthletesController {
         });
         if (!response.ok) throw new Error(await response.text());
         const parsed = (await response.json()) as ParsedDocxPreview;
-        return this.service.confirmImport(competitionId, parsed.athletes, parsed.entries);
+        return this.service.confirmImport(
+          competitionId,
+          parsed.athletes,
+          parsed.entries,
+          { role: session.role as 'admin' | 'secretary', userId: session.userId },
+        );
       } catch (error: unknown) {
         this.logger.error(
           `DOCX import parse failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -335,9 +375,12 @@ export class AthletesController {
       }
     }
 
-    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-      return this.service.importFromExcel(file.buffer, competitionId);
+    if (name.endsWith('.xls')) {
+      throw new BadRequestException('Формат .xls більше не підтримується. Використайте .xlsx.');
     }
-    return this.service.importFromCsv(file.buffer, competitionId);
+    if (name.endsWith('.xlsx')) {
+      return this.service.importFromExcel(file.buffer, competitionId, { role: session.role as 'admin' | 'secretary', userId: session.userId });
+    }
+    return this.service.importFromCsv(file.buffer, competitionId, { role: session.role as 'admin' | 'secretary', userId: session.userId });
   }
 }

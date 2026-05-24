@@ -51,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] bg-white/5 rounded-2xl border border-white/10 p-1.5">
               <Link href="/" className="px-4 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition-all">Головна</Link>
               <Link href="/competitions" className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all">Змагання</Link>
+              <Link href="/login" className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all">Вхід</Link>
             </nav>
 
             <div className="flex items-center gap-4">
@@ -72,8 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-white/5 text-slate-500 text-xs flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <p>© 2026 SwimSync</p>
           <div className="flex gap-4">
-            <span>Допомога*</span>
-            <span>Контакти*</span>
+            <Link href="/help" className="opacity-50 hover:opacity-100 hover:text-white transition-opacity">Допомога</Link>
+            <Link href="/contacts" className="opacity-50 hover:opacity-100 hover:text-white transition-opacity">Контакти</Link>
             <Link href="/normatives" className="opacity-50 hover:opacity-100 hover:text-white transition-opacity">Нормативи</Link>
             <Link href="/cabinet" className="opacity-50 hover:opacity-100 hover:text-white transition-opacity">Кабінет</Link>
           </div>

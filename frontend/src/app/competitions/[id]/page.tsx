@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState, use } from 'react';
-import { api } from '@/lib/api';
 import { downloadDocxWithRetry } from '@/lib/docx-download';
 import { ListOrdered, Trophy, Settings, Upload, Play, Eye, Zap, Waves, MapPin, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { ApiClientError, api } from '@/lib/api';
 
 import { Competition, Event } from '@/types';
 import EventsTab from './tabs/EventsTab';
@@ -28,6 +28,7 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadErrorStatus, setLoadErrorStatus] = useState<number | null>(null);
 
   const load = async (signal?: AbortSignal) => {
     if (!hasValidCompId) {
@@ -44,6 +45,7 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
       if (signal?.aborted) return;
       setEvents(ev);
       setLoadError(null);
+      setLoadErrorStatus(null);
       if (!selectedEventId && ev.length > 0) {
         setSelectedEventId(ev[0].id);
       }
@@ -51,6 +53,7 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
       if (error instanceof Error && error.name === 'AbortError') return;
       setComp(null);
       setEvents([]);
+      setLoadErrorStatus(error instanceof ApiClientError ? error.statusCode : null);
       setLoadError(error instanceof Error ? error.message : 'Не вдалося завантажити змагання');
     } finally {
       if (!signal?.aborted) {
@@ -74,7 +77,35 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
     }));
   }, [comp]);
 
-  if (loadError) return <div className="text-center py-24 text-rose-400">{loadError}</div>;
+  if (loadError) {
+    const isAccessError = loadErrorStatus === 401 || loadErrorStatus === 403;
+    return (
+      <div className="max-w-[760px] mx-auto py-20">
+        <div className="glass-card p-8 border-white/10 space-y-4">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+            {isAccessError ? 'Потрібен вхід' : 'Помилка завантаження'}
+          </p>
+          <h1 className="text-3xl font-black text-white">
+            {isAccessError ? 'Це змагання доступне лише після авторизації' : 'Не вдалося відкрити змагання'}
+          </h1>
+          <p className="text-sm text-slate-400">{loadError}</p>
+          <div className="flex flex-wrap gap-3">
+            {isAccessError ? (
+              <>
+                <Link href="/login" className="btn-primary">Увійти в систему</Link>
+                <Link href="/competitions" className="btn-secondary">До списку змагань</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/competitions" className="btn-primary">До списку змагань</Link>
+                <Link href="/login" className="btn-secondary">Увійти</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (loading || !comp) return <div className="text-center py-24 text-slate-500 animate-pulse">Завантаження...</div>;
 
   const tabs = [
@@ -87,7 +118,7 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
   const canRunSecretary = comp.status !== 'draft';
   const canGenerateSeeding = comp.status !== 'completed' && events.length > 0;
   const blockedImportReason = 'Імпорт заблоковано: змагання в архіві (completed).';
-  const blockedSecretaryReason = 'Секретар недоступний у чернетці. Переведіть змагання в статус active.';
+  const blockedSecretaryReason = 'Керування недоступне у чернетці. Переведіть змагання в статус active.';
   const blockedSeedingReason = comp.status === 'completed'
     ? 'Генерація запливів заблокована: змагання в архіві.'
     : 'Немає дистанцій для жеребкування.';
@@ -101,6 +132,12 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
     : comp.status === 'completed'
       ? 'Завершене'
       : 'Чернетка';
+  const nextStep =
+    comp.status === 'draft'
+      ? { type: 'link' as const, title: 'Наступний крок: імпорт заявок', description: 'Після заповнення даних відкрийте імпорт і завантажте файл учасників.', href: `/competitions/${compId}/import`, label: 'Відкрити імпорт' }
+      : comp.status === 'active'
+        ? { type: 'link' as const, title: 'Наступний крок: секретар і live-табло', description: 'Вносьте результати у секретарі та діліться public live-посиланням.', href: `/competitions/${compId}/live`, label: 'Відкрити live' }
+        : { type: 'action' as const, title: 'Наступний крок: перевірка результатів', description: 'Перегляньте підсумки та експортуйте офіційні протоколи.', label: 'Показати результати' };
 
   return (
     <div className="space-y-8 max-w-[1400px] mx-auto">
@@ -137,11 +174,11 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
           )}
           {canRunSecretary ? (
             <Link href={`/competitions/${compId}/secretary`} className="btn-primary flex items-center gap-2 !px-4 !py-2 text-xs">
-              <Play className="w-4 h-4" /> Секретар
+              <Play className="w-4 h-4" /> Керування
             </Link>
           ) : (
             <button disabled title={blockedSecretaryReason} className="btn-primary flex items-center gap-2 !px-4 !py-2 text-xs opacity-50 cursor-not-allowed">
-              <Play className="w-4 h-4" /> Секретар
+              <Play className="w-4 h-4" /> Керування
             </button>
           )}
           <button
@@ -176,6 +213,21 @@ export default function CompetitionDetail({ params }: { params: Promise<{ id: st
             <Eye className="w-5 h-5" />
           </Link>
         </div>
+      </div>
+      <div className="glass-card p-5 border-white/10 bg-white/[0.03] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{nextStep.title}</p>
+          <p className="text-sm text-slate-300 mt-1">{nextStep.description}</p>
+        </div>
+        {nextStep.type === 'action' ? (
+          <button type="button" onClick={() => setTab('results')} className="btn-primary w-fit">
+            {nextStep.label}
+          </button>
+        ) : (
+          <Link href={nextStep.href} className="btn-primary w-fit">
+            {nextStep.label}
+          </Link>
+        )}
       </div>
       {blockedActions.length > 0 && (
         <div className={`glass-card ${compactTables ? 'p-4' : 'p-5'} border-amber-500/20 bg-amber-500/5`}>

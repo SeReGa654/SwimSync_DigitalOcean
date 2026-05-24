@@ -30,7 +30,6 @@ export default function CompetitionsPage() {
   const [authLoading, setAuthLoading] = useState(false);
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
-  const [registerRole, setRegisterRole] = useState<AuthRole>('secretary');
   const [registerLoading, setRegisterLoading] = useState(false);
 
   const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -40,7 +39,7 @@ export default function CompetitionsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyCompetitionForm);
 
-  const canManageCompetitions = role === 'secretary' || role === 'admin';
+  const canManageCompetitions = role === 'admin' || role === 'secretary';
 
   const loadCompetitions = async () => {
     setCompetitionsLoading(true);
@@ -111,11 +110,10 @@ export default function CompetitionsPage() {
     event.preventDefault();
     setRegisterLoading(true);
     try {
-      const result = await api.registerAccount(registerUsername, registerPassword, registerRole);
+      const result = await api.registerAccount(registerUsername, registerPassword, 'secretary');
       setRegisterUsername('');
       setRegisterPassword('');
-      setRegisterRole('secretary');
-      toast.success(`Запит на реєстрацію "${result.username}" надіслано. Очікуйте підтвердження адміністратора.`);
+      toast.success(`Запит на реєстрацію секретаря "${result.username}" надіслано. Очікуйте підтвердження адміністратора.`);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Не вдалося надіслати запит на реєстрацію');
     } finally {
@@ -136,8 +134,8 @@ export default function CompetitionsPage() {
             Увійдіть у потрібний кабінет і працюйте із змаганнями у захищеному розділі.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-            <Link href="/admin" className="btn-secondary text-center">Адмін-панель</Link>
-            <Link href="/cabinet" className="btn-secondary text-center">Особистий кабінет</Link>
+              <Link href="/admin" className="btn-secondary text-center">Адмін-панель</Link>
+              <Link href="/cabinet" className="btn-secondary text-center">Особистий кабінет</Link>
             <Link href="/normatives" className="btn-secondary text-center">Нормативи</Link>
           </div>
         </div>
@@ -168,7 +166,7 @@ export default function CompetitionsPage() {
         </div>
 
         <div className="glass-card p-8 border-white/10">
-          <h3 className="text-xl font-black text-white mb-4">Запит на реєстрацію кабінету</h3>
+          <h3 id="register" className="text-xl font-black text-white mb-4">Запит на реєстрацію секретаря</h3>
           <p className="text-sm text-slate-400 mb-4">
             Після відправки запиту акаунт зможе увійти тільки після підтвердження адміністратором.
           </p>
@@ -190,18 +188,28 @@ export default function CompetitionsPage() {
               minLength={8}
               required
             />
-            <select
-              value={registerRole}
-              onChange={(e) => setRegisterRole(e.target.value as AuthRole)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary-500 outline-none"
-            >
-              <option value="secretary">Секретар</option>
-              <option value="admin">Адміністратор</option>
-            </select>
             <button type="submit" disabled={registerLoading} className="btn-secondary py-3 px-6 disabled:opacity-50">
               {registerLoading ? 'Надсилання...' : 'Надіслати запит'}
             </button>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (role !== 'admin' && role !== 'secretary') {
+    return (
+      <div className="max-w-[760px] mx-auto py-20">
+        <div className="glass-card p-8 border-white/10 space-y-4">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Потрібен вхід</p>
+          <h2 className="text-3xl font-black text-white">Керування змаганнями доступне секретарю або адміну</h2>
+          <p className="text-sm text-slate-400">
+            Усі операції створення, імпорту, налаштування та результатів доступні в межах власних змагань.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/login" className="btn-primary">Увійти</Link>
+            <Link href="/cabinet" className="btn-secondary">До кабінету</Link>
+          </div>
         </div>
       </div>
     );
@@ -264,7 +272,7 @@ export default function CompetitionsPage() {
           <div className="glass-card p-6 border-white/10 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-black text-white">Керування змаганнями</h3>
-              <p className="text-sm text-slate-400">Створення нових подій доступне після відповідної авторизації.</p>
+              <p className="text-sm text-slate-400">Створення нових подій доступне секретарю або адміну.</p>
             </div>
             <button
               onClick={() => {
@@ -283,7 +291,7 @@ export default function CompetitionsPage() {
           {!canManageCompetitions && (
             <div className="glass-card p-4 border-white/10 text-sm text-amber-300 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4" />
-              Для створення нових змагань потрібна авторизація секретаря або адміністратора.
+              Для створення нових змагань доступні секретар або адміністратор.
             </div>
           )}
 

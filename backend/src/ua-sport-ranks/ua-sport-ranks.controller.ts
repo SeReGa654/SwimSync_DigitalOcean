@@ -5,6 +5,7 @@ import { UpdateUaSportRankDto } from './dto/update-ua-sport-rank.dto';
 import { ApiCookieAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../common/decorators/roles.decorator';
 import { SessionRoleGuard } from '../common/guards/session-role.guard';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('UA Sport Ranks')
 @Controller('ua-sport-ranks')
@@ -12,6 +13,7 @@ export class UaSportRanksController {
   constructor(private readonly service: UaSportRanksService) {}
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'List UA sport rank rules, optionally by pool length' })
   @ApiQuery({ name: 'poolLength', required: false, type: String })
   findAll(@Query('poolLength') poolLength?: string) {
