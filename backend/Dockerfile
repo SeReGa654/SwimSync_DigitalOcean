@@ -29,4 +29,4 @@ COPY --from=build /app/backend/dist backend/dist
 RUN chown -R app:app /app
 USER app
 EXPOSE 3001
-CMD ["npm", "--prefix", "backend", "run", "start:prod"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema backend/prisma/schema.prisma && npm --prefix backend run start:prod"]
