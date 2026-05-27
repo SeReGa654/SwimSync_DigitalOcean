@@ -65,6 +65,7 @@
   "overrides": {
     "fast-uri": "^3.1.2",
     "postcss": "^8.5.10",
+    "tmp": "0.2.6",
     "next": {
       "postcss": "^8.5.10"
     }
