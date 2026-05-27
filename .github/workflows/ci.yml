@@ -37,7 +37,8 @@ jobs:
         run: node ops/scripts/audit-prod-deps.mjs
 
       - name: Generate Prisma client
-        run: npm --prefix backend exec prisma generate
+        working-directory: backend
+        run: npx prisma generate --schema prisma/schema.prisma
 
       - name: Generate OpenAPI contracts
         run: npm run contracts:generate

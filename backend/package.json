@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && npm run build:seed",
+    "build:seed": "tsc -p prisma/tsconfig.seed.json",
     "start": "nest start",
     "start:dev": "ts-node src/main.ts",
     "start:prod": "node dist/backend/src/main",
@@ -22,7 +23,7 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
-    "db:seed:prod": "node prisma/seed.js"
+    "db:seed:prod": "node dist/prisma/seed.js"
   },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
