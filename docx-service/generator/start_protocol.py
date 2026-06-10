@@ -57,6 +57,12 @@ def set_cell_text(cell, text, font_name=FONT_NAME, font_size=11, bold=False, ali
     cell.text = text
     set_cell_font(cell, font_name, font_size, bold, align)
 
+def format_entry_name(entry: Dict[str, Any]) -> str:
+    name = entry.get('full_name', '')
+    if entry.get('is_out_of_competition'):
+        return f"{name} (ПК)" if name else 'ПК'
+    return name
+
 
 def set_column_widths(table, widths):
     """Set column widths on a table."""
@@ -210,7 +216,7 @@ def generate_start_protocol(competition: Dict, events_data: List[Dict]) -> bytes
                 row = table.add_row()
                 set_cell_text(row.cells[0], str(entry.get('lane', '')),
                               align=WD_ALIGN_PARAGRAPH.CENTER)
-                set_cell_text(row.cells[1], entry.get('full_name', ''),
+                set_cell_text(row.cells[1], format_entry_name(entry),
                               align=WD_ALIGN_PARAGRAPH.LEFT)
                 set_cell_text(row.cells[2], entry.get('age_group', ''),
                               align=WD_ALIGN_PARAGRAPH.CENTER)

@@ -21,7 +21,7 @@ type RankCode = typeof RANK_OPTIONS[number];
 
 type PreviewRow = ParsedAthlete & {
   index: number;
-  entries: ParsedEntry[];
+  entries: Array<ParsedEntry & { entryIndex: number }>;
   warnings: ImportPreview['warnings'];
   errors: ImportPreview['errors'];
 };
@@ -199,8 +199,24 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
     }
   };
 
+  const toggleOutOfCompetition = (entryIndex: number) => {
+    setPreview((prev) => {
+      if (!prev) return prev;
+      if (entryIndex < 0 || entryIndex >= prev.entries.length) return prev;
+      const nextEntries = [...prev.entries];
+      const current = nextEntries[entryIndex];
+      nextEntries[entryIndex] = {
+        ...current,
+        is_out_of_competition: !current.is_out_of_competition,
+      };
+      return { ...prev, entries: nextEntries };
+    });
+  };
+
   const previewRows: PreviewRow[] = preview ? preview.athletes.map((a, i) => {
-    const athleteEntries = preview.entries.filter((e) => e.athlete_index === i);
+    const athleteEntries = preview.entries
+      .map((e, entryIndex) => ({ ...e, entryIndex }))
+      .filter((e) => e.athlete_index === i);
     const rowWarnings = preview.warnings.filter((w) => w.row === i + 1);
     const rowErrors = preview.errors.filter((e) => e.row === i + 1);
     return { ...a, index: i, entries: athleteEntries, warnings: rowWarnings, errors: rowErrors };
@@ -501,6 +517,15 @@ export default function ImportPage({ params }: { params: Promise<{ id: string }>
                                 <span key={j} className="inline-flex items-center gap-2 bg-primary-500/5 border border-primary-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold">
                                   {e.distance_m}м {toStyleShortUa(e.style)}
                                   <span className="font-mono text-primary-400">{msToTime(e.entry_time_ms)}</span>
+                                  <label className="inline-flex items-center gap-1 text-[9px] text-slate-400">
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(e.is_out_of_competition)}
+                                      onChange={() => toggleOutOfCompetition(e.entryIndex)}
+                                      className="h-3 w-3 accent-amber-400"
+                                    />
+                                    ПК
+                                  </label>
                                 </span>
                               ))}
                             </div>

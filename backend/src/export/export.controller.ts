@@ -56,6 +56,7 @@ interface StartProtocolEntryRow {
   birth_year: number;
   entry_time_ms: number | null;
   coach: string;
+  is_out_of_competition: boolean;
 }
 
 interface StartProtocolHeat {
@@ -435,6 +436,7 @@ export class ExportController {
           birth_year: e.athlete?.birthYear ?? 0,
           entry_time_ms: e.entryTimeMs,
           coach: e.athlete?.coach || '',
+          is_out_of_competition: Boolean(e.isOutOfCompetition) || e.status === 'PK',
         });
       }
 
@@ -610,9 +612,19 @@ export class ExportController {
     return String(value ?? '').toLowerCase();
   }
 
+  private isOutOfCompetitionEntry(entry: any): boolean {
+    return Boolean(entry.isOutOfCompetition) || entry.status === 'PK' || entry.result?.status === 'PK';
+  }
+
+  private resolveProtocolStatus(entry: any): ResultStatus {
+    const status = entry.result?.status as ResultStatus | undefined;
+    if (status && status !== 'OK') return status;
+    return this.isOutOfCompetitionEntry(entry) ? 'PK' : 'OK';
+  }
+
   private compareResultEntries(a: any, b: any): number {
     const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
-    const diff = statusOrder(a.result.status) - statusOrder(b.result.status);
+    const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
     if (diff !== 0) return diff;
     return (a.result.place || 999) - (b.result.place || 999);
   }
@@ -816,7 +828,7 @@ export class ExportController {
       // Sort: OK by place, then PK, then DQ/DNS/DNF
       agEntries.sort((a, b) => {
         const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
-        const diff = statusOrder(a.result.status) - statusOrder(b.result.status);
+        const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
         if (diff !== 0) return diff;
         return (a.result.place || 999) - (b.result.place || 999);
       });
@@ -831,13 +843,13 @@ export class ExportController {
 
   private buildCombinedAgeGroups(entries: any[]): ResultProtocolAgeGroup[] {
     // Combine all entries and recalculate places
-    const validEntries = entries.filter(e => e.result && (e.result.status === 'OK' || e.result.status === 'PK'));
-    const invalidEntries = entries.filter(e => e.result && !['OK', 'PK'].includes(e.result.status));
+    const validEntries = entries.filter(e => e.result && ['OK', 'PK'].includes(this.resolveProtocolStatus(e)));
+    const invalidEntries = entries.filter(e => e.result && !['OK', 'PK'].includes(this.resolveProtocolStatus(e)));
 
     // Sort valid entries by finish time (OK first, then PK)
     validEntries.sort((a, b) => {
       const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : 1);
-      const diff = statusOrder(a.result.status) - statusOrder(b.result.status);
+      const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
       if (diff !== 0) return diff;
       return (a.result.finishTimeMs || 999999) - (b.result.finishTimeMs || 999999);
     });
@@ -850,7 +862,7 @@ export class ExportController {
       const e = validEntries[i];
       const prevE = i > 0 ? validEntries[i - 1] : null;
 
-      if (e.result.status === 'OK') {
+      if (this.resolveProtocolStatus(e) === 'OK') {
         if (!prevE || prevE.result.finishTimeMs !== e.result.finishTimeMs) {
           currentPlace = i + 1;
         }
@@ -869,7 +881,7 @@ export class ExportController {
 
     // Add invalid entries
     for (const e of invalidEntries) {
-      const pd = placeToDisplay(null, e.result.status);
+      const pd = placeToDisplay(null, this.resolveProtocolStatus(e));
       processedEntries.push({
         ...e,
         place_display: pd,
@@ -893,7 +905,7 @@ export class ExportController {
         achieved_rank: e.result.achievedRank,
         points_wa: e.result.pointsWa,
         coach: e.athlete?.coach || '',
-        status: e.result.status,
+        status: this.resolveProtocolStatus(e),
         dq_reason: e.result.dqReason,
       })),
     }];
@@ -914,7 +926,7 @@ export class ExportController {
       const sortedPrimary = primaryEntries.filter(e => e.result);
       sortedPrimary.sort((a, b) => {
         const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
-        const diff = statusOrder(a.result.status) - statusOrder(b.result.status);
+        const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
         if (diff !== 0) return diff;
         return (a.result.place || 999) - (b.result.place || 999);
       });
@@ -930,7 +942,7 @@ export class ExportController {
     if (combinedSecondary.length > 0) {
       combinedSecondary.sort((a, b) => {
         const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
-        const diff = statusOrder(a.result.status) - statusOrder(b.result.status);
+        const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
         if (diff !== 0) return diff;
         return (a.result.finishTimeMs || 999999) - (b.result.finishTimeMs || 999999);
       });
@@ -942,7 +954,7 @@ export class ExportController {
         const e = combinedSecondary[i];
         const prevE = i > 0 ? combinedSecondary[i - 1] : null;
 
-        if (e.result.status === 'OK') {
+        if (this.resolveProtocolStatus(e) === 'OK') {
           if (!prevE || prevE.result.finishTimeMs !== e.result.finishTimeMs) {
             currentPlace = i + 1;
           }
@@ -950,10 +962,10 @@ export class ExportController {
 
         recalculated.push({
           ...e,
-          recalc_place: e.result.status === 'OK' ? currentPlace : null,
-          recalc_place_display: e.result.status === 'OK' 
+          recalc_place: this.resolveProtocolStatus(e) === 'OK' ? currentPlace : null,
+          recalc_place_display: this.resolveProtocolStatus(e) === 'OK' 
             ? (PLACE_ROMAN[currentPlace] || currentPlace.toString())
-            : (e.result.status === 'PK' ? 'п/к' : placeToDisplay(null, e.result.status)),
+            : (this.resolveProtocolStatus(e) === 'PK' ? 'п/к' : placeToDisplay(null, this.resolveProtocolStatus(e))),
         });
       }
 
@@ -974,7 +986,7 @@ export class ExportController {
           achieved_rank: e.result.achievedRank,
           points_wa: e.result.pointsWa,
           coach: e.athlete?.coach || '',
-          status: e.result.status,
+          status: this.resolveProtocolStatus(e),
           dq_reason: e.result.dqReason,
         })),
       });
@@ -984,9 +996,11 @@ export class ExportController {
   }
 
   private buildResultRow(e: any): ResultProtocolEntryRow {
+    const resolvedStatus = this.resolveProtocolStatus(e);
+    const resolvedPlaceDisplay = e.result.placeDisplay || (resolvedStatus === 'PK' ? 'п/к' : '');
     return {
       place: e.result.place,
-      place_display: e.result.placeDisplay || '',
+      place_display: resolvedPlaceDisplay,
       lane: e.laneNumber || 0,
       full_name: e.athlete 
         ? `${e.athlete.lastName ?? ''} ${e.athlete.firstName ?? ''}`.trim()
@@ -999,7 +1013,7 @@ export class ExportController {
       achieved_rank: e.result.achievedRank,
       points_wa: e.result.pointsWa,
       coach: e.athlete?.coach || '',
-      status: e.result.status,
+      status: resolvedStatus,
       dq_reason: e.result.dqReason,
     };
   }
@@ -1091,7 +1105,8 @@ export class ExportController {
       }
       wsData.push([
         entry.laneNumber,
-        `${entry.athlete?.lastName ?? ''} ${entry.athlete?.firstName ?? ''}`.trim(),
+        `${entry.athlete?.lastName ?? ''} ${entry.athlete?.firstName ?? ''}`.trim()
+          + (entry.isOutOfCompetition || entry.status === 'PK' ? ' (ПК)' : ''),
         entry.ageGroup?.name || '',
         entry.athlete?.birthYear ?? '',
         msToTime(entry.entryTimeMs),
@@ -1129,9 +1144,9 @@ export class ExportController {
     });
 
     entries.sort((a, b) => {
-      if (a.result!.status !== 'OK' && b.result!.status !== 'OK') return 0;
-      if (a.result!.status !== 'OK') return 1;
-      if (b.result!.status !== 'OK') return -1;
+      const statusOrder = (s: ResultStatus) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
+      const diff = statusOrder(this.resolveProtocolStatus(a)) - statusOrder(this.resolveProtocolStatus(b));
+      if (diff !== 0) return diff;
       return (a.result!.place || 999) - (b.result!.place || 999);
     });
 
@@ -1145,15 +1160,19 @@ export class ExportController {
 
     for (const entry of entries) {
       const r = entry.result!;
+      const resolvedStatus = this.resolveProtocolStatus(entry);
+      const timeValue = ['DQ', 'DNS', 'DNF'].includes(resolvedStatus)
+        ? resolvedStatus
+        : msToTime(r.finishTimeMs);
       wsData.push([
-        r.placeDisplay || (r.status === 'OK' ? r.place : r.status),
+        r.placeDisplay || (resolvedStatus === 'OK' ? r.place : resolvedStatus),
         entry.laneNumber,
         `${entry.athlete?.lastName ?? ''} ${entry.athlete?.firstName ?? ''}`.trim(),
         entry.athlete?.birthYear ?? '',
         entry.athlete?.currentRank ? (entry.athlete?.currentRank ? (RANK_DISPLAY[entry.athlete.currentRank] || entry.athlete.currentRank) : 'NONE') : 'NONE',
         entry.athlete?.club ?? '',
         entry.athlete?.region || '',
-        r.status === 'OK' ? msToTime(r.finishTimeMs) : r.status,
+        timeValue,
         r.achievedRank ? (RANK_DISPLAY[r.achievedRank] || r.achievedRank) : '',
         r.pointsWa || '',
         entry.athlete?.coach || '',

@@ -37,6 +37,10 @@ function placeToDisplay(place: number | null, status: ResultStatus): string | nu
   return PLACE_ROMAN[place] || place.toString();
 }
 
+function isOutOfCompetitionEntry(entry: { isOutOfCompetition?: boolean; status?: string; result?: { status: ResultStatus } | null }): boolean {
+  return Boolean(entry.isOutOfCompetition) || entry.status === 'PK' || entry.result?.status === 'PK';
+}
+
 @Injectable()
 export class ResultsService {
   constructor(
@@ -240,9 +244,9 @@ export class ResultsService {
       const validEntries = groupEntries.filter(
         e => e.result && (e.result.status === 'OK' || e.result.status === 'PK') && e.result.finishTimeMs != null,
       );
-      // PK entries compete but are marked separately
-      const okEntries = validEntries.filter(e => e.result!.status === 'OK');
-      const pkEntries = validEntries.filter(e => e.result!.status === 'PK');
+      // Out-of-competition entries do not participate in ranking
+      const okEntries = validEntries.filter(e => e.result!.status === 'OK' && !isOutOfCompetitionEntry(e));
+      const pkEntries = validEntries.filter(e => isOutOfCompetitionEntry(e));
 
       // Step 2: Sort by finish time ASC
       okEntries.sort((a, b) => a.result!.finishTimeMs! - b.result!.finishTimeMs!);
@@ -294,7 +298,7 @@ export class ResultsService {
         }
       }
 
-      // PK entries — calculate rank/points but no place
+      // Out-of-competition entries — calculate rank/points but no place
       for (const entry of pkEntries) {
         const finishTimeMs = entry.result!.finishTimeMs!;
         let pointsWa: number | null = null;

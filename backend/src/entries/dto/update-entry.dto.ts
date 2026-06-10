@@ -35,6 +35,10 @@ export class UpdateEntryDto {
   doctorApproved?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isOutOfCompetition?: boolean;
+
+  @IsOptional()
   @IsIn(['IN', 'PK', 'DQ', 'DNS', 'DNF'])
   status?: 'IN' | 'PK' | 'DQ' | 'DNS' | 'DNF';
 }

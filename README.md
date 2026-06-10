@@ -26,7 +26,8 @@ SwimSync replaces fragmented competition operations (Excel sheets, paper protoco
 
 - DOCX Job Pipeline — submit/status/download, states queued/processing/done/failed, retry, failure reason shown in UI
 - Secretary Results Module — per-heat entry, batch-save, optimistic locking (version conflict detection), autosave drafts
-- Results Finalization — place calculation, tie handling, WA points, sport rank verification, athlete profile update
+- Results Finalization — place calculation, tie handling, WA points, automatic Ukrainian Sport Rank (ФПУ) validation for both 50m (LCM) and 25m (SCM) pools, and athlete profile updates
+- Out of Competition (ПК / Поза конкурсом) Mode — support for `isOutOfCompetition` flag per event entry. Out-of-competition athletes are seeded in heats, their results are recorded in history, and they can execute normatives or personal records, but they do not compete for places or medals, and do not affect regular standings or team points.
 - Entry Import — parse CSV/XLSX/DOCX with preview/confirm, grouped validation warnings/errors, bulk gender/rank edits
 - Operational Observability — audit log with requestId, health/dependencies, Prometheus metrics endpoint, operator screen
 - Feature Flags (Admin only) — centralized toggles for risky capabilities with backend enforcement and audit trail

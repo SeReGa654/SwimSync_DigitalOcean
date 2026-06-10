@@ -48,6 +48,8 @@ STYLE_DISPLAY_UA = {
     'Backstroke': 'На спині', 'Butterfly': 'Батерфляй', 'Medley': 'Комплексне плавання',
 }
 
+OUT_OF_COMPETITION_RE = re.compile(r'(поза\s+конкурс|п\/к|\(пк\)|\bпк\b)', re.IGNORECASE)
+
 
 def normalize_rank(raw: str) -> str:
     """Normalize rank string to enum value."""
@@ -69,6 +71,7 @@ def parse_distance(raw: str) -> Optional[Dict[str, Any]]:
     if not raw:
         return None
     s = raw.strip().lower()
+    is_out_of_competition = bool(OUT_OF_COMPETITION_RE.search(s))
     # Extract distance number
     match = re.search(r'(\d+)', s)
     if not match:
@@ -89,7 +92,7 @@ def parse_distance(raw: str) -> Optional[Dict[str, Any]]:
                 break
     if not style:
         return None
-    return {'distance_m': distance_m, 'style': style}
+    return {'distance_m': distance_m, 'style': style, 'is_out_of_competition': is_out_of_competition}
 
 
 def is_suspicious_time(ms: int, distance_m: int) -> bool:
@@ -203,6 +206,15 @@ def parse_zayvka(file_bytes: bytes) -> Dict[str, Any]:
             # col[4] → distances (multiline)
             dist_cell = cells[4]
             distances_raw = [p.text.strip() for p in dist_cell.paragraphs if p.text.strip()]
+            normalized_distances: List[str] = []
+            for dist_text in distances_raw:
+                has_distance = re.search(r'\d+', dist_text) is not None
+                has_marker_only = OUT_OF_COMPETITION_RE.search(dist_text) and not has_distance
+                if has_marker_only and normalized_distances:
+                    normalized_distances[-1] = f"{normalized_distances[-1]} {dist_text}".strip()
+                    continue
+                normalized_distances.append(dist_text)
+            distances_raw = normalized_distances
             
             # col[5] → times (multiline)
             time_cell = cells[5]
@@ -311,6 +323,7 @@ def parse_zayvka(file_bytes: bytes) -> Dict[str, Any]:
                     'style': parsed_dist['style'],
                     'gender': row_gender,
                     'entry_time_ms': entry_time_ms,
+                    'is_out_of_competition': parsed_dist.get('is_out_of_competition', False),
                     'distance_raw': dist_raw,
                     'time_raw': time_raw,
                 })

@@ -596,7 +596,7 @@
         ]
       }
     },
-    "/api/competitions/age-groups/{agId}": {
+    "/api/competitions/{id}/age-groups/{agId}": {
       "delete": {
         "operationId": "CompetitionsController_deleteAgeGroup",
         "parameters": [
@@ -2215,6 +2215,43 @@
       }
     },
     "/api/wa-base-times/{id}": {
+      "patch": {
+        "operationId": "WaBaseTimesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertWaBaseTimeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update WA base time row (admin only)",
+        "tags": [
+          "WA Base Times"
+        ]
+      },
       "delete": {
         "operationId": "WaBaseTimesController_delete",
         "parameters": [
@@ -2681,6 +2718,54 @@
         "summary": "Create support ticket from authenticated user context",
         "tags": [
           "Support"
+        ]
+      }
+    },
+    "/api/public/competitions/{id}": {
+      "get": {
+        "operationId": "PublicController_getCompetition",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Public competition info for live scoreboard",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/public/events": {
+      "get": {
+        "operationId": "PublicController_getEvents",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Public events list for live scoreboard",
+        "tags": [
+          "Public"
         ]
       }
     }

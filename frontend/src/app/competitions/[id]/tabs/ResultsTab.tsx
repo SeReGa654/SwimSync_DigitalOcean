@@ -58,12 +58,18 @@ export default function ResultsTab({ comp, events, selectedEventId, setSelectedE
     });
   };
 
+  const resolveStatus = (entry: Entry) => {
+    const status = entry.result?.status || 'OK';
+    if (status !== 'OK') return status;
+    return entry.isOutOfCompetition || entry.status === 'PK' ? 'PK' : 'OK';
+  };
+
   const sortedEntries = [...entries]
     .filter(e => e.result)
     .sort((a, b) => {
-      if (a.result?.status !== 'OK' && b.result?.status !== 'OK') return 0;
-      if (a.result?.status !== 'OK') return 1;
-      if (b.result?.status !== 'OK') return -1;
+      const statusOrder = (s: string) => (s === 'OK' ? 0 : s === 'PK' ? 1 : 2);
+      const diff = statusOrder(resolveStatus(a)) - statusOrder(resolveStatus(b));
+      if (diff !== 0) return diff;
       return (a.result?.place || 999) - (b.result?.place || 999);
     });
 
@@ -158,8 +164,12 @@ export default function ResultsTab({ comp, events, selectedEventId, setSelectedE
                       <tbody className="divide-y divide-white/5">
                         {sortedEntries.map((entry, idx) => {
                           const place = entry.result?.place;
-                          const isOK = entry.result?.status === 'OK';
+                          const resolvedStatus = resolveStatus(entry);
+                          const isOK = resolvedStatus === 'OK';
+                          const isOutOfCompetition = resolvedStatus === 'PK';
                           const isMedal = isOK && place && place <= 3;
+                          const placeLabel = entry.result?.placeDisplay
+                            || (isOK ? place : (isOutOfCompetition ? 'п/к' : resolvedStatus));
 
                           return (
                             <motion.tr
@@ -173,7 +183,7 @@ export default function ResultsTab({ comp, events, selectedEventId, setSelectedE
                                       place === 3 ? 'medal-bronze' :
                                         'text-slate-600'
                                   }`}>
-                                  {entry.result?.placeDisplay || (isOK ? place : entry.result?.status)}
+                                  {placeLabel}
                                 </span>
                               </td>
                               <td className="px-6 py-6">
@@ -184,7 +194,9 @@ export default function ResultsTab({ comp, events, selectedEventId, setSelectedE
                               </td>
                               <td className="px-6 py-6 text-center text-xs text-slate-500 font-medium italic max-w-[200px] truncate">{entry.athlete?.club}</td>
                               <td className="px-6 py-6 text-right font-mono font-black text-xl text-primary-400 drop-shadow-[0_0_8px_rgba(14,165,233,0.3)]">
-                                {isOK ? msToTime(entry.result?.finishTimeMs) : <span className="text-red-500">{entry.result?.status}</span>}
+                                {isOK || isOutOfCompetition
+                                  ? msToTime(entry.result?.finishTimeMs)
+                                  : <span className="text-red-500">{resolvedStatus}</span>}
                               </td>
                               <td className="px-6 py-6 text-center">
                                 {entry.result?.achievedRank && (
@@ -196,10 +208,10 @@ export default function ResultsTab({ comp, events, selectedEventId, setSelectedE
                               <td className="px-6 py-6 text-right font-mono text-slate-400 font-black">{entry.result?.pointsWa || '—'}</td>
                               <td className="px-6 py-6 text-center">
                                 <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${isOK ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                                    entry.result?.status === 'DQ' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                                    resolvedStatus === 'DQ' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
                                       'bg-slate-500/10 text-slate-500 border border-white/10'
                                   }`}>
-                                  {entry.result?.status}
+                                  {resolvedStatus}
                                 </span>
                               </td>
                             </motion.tr>

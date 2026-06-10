@@ -74,6 +74,7 @@ export interface Entry {
   laneNumber: number | null;
   ageGroupId: number | null;
   doctorApproved: boolean;
+  isOutOfCompetition: boolean;
   status: string; // IN, PK, DQ, DNS, DNF
   teamName?: string | null;
   athlete?: Athlete;

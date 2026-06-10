@@ -32,6 +32,7 @@ export class EntriesService {
         entryTimeMs: data.entryTimeMs ?? null,
         ageGroupId: data.ageGroupId ?? null,
         doctorApproved: data.doctorApproved ?? false,
+        isOutOfCompetition: data.isOutOfCompetition ?? false,
       },
     });
   }

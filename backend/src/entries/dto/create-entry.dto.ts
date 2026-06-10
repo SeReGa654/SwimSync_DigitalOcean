@@ -24,4 +24,8 @@ export class CreateEntryDto {
   @IsOptional()
   @IsBoolean()
   doctorApproved?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isOutOfCompetition?: boolean;
 }

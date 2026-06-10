@@ -37,6 +37,7 @@ interface ParsedImportEntry {
   style: string;
   gender: AthleteGender;
   entry_time_ms: number | null;
+  is_out_of_competition?: boolean;
   distance_raw: string;
   time_raw: string;
 }
@@ -75,6 +76,7 @@ interface ConfirmImportEntryInput {
   style: string;
   gender?: string;
   entry_time_ms?: number | null;
+  is_out_of_competition?: boolean;
 }
 
 interface ExtractedEvent {
@@ -373,6 +375,7 @@ export class AthletesService {
       if (distRaw && styleRaw) {
         const distance_m = parseInt(distRaw, 10);
         const style = this.normalizeStyle(styleRaw);
+        const is_out_of_competition = this.isOutOfCompetitionMarker(`${distRaw} ${styleRaw}`);
         const entry_time_ms = parseTime(timeRaw);
 
         if (entry_time_ms === null && timeRaw && !['NT', 'Б/Ч', 'БЕЗ ЧАСУ'].includes(timeRaw.toUpperCase()) && timeRaw !== '') {
@@ -381,7 +384,10 @@ export class AthletesService {
 
         entries.push({
           athlete_index: athleteIndex, distance_m, style, gender: athleteGender,
-          entry_time_ms, distance_raw: `${distRaw}`, time_raw: timeRaw,
+          entry_time_ms,
+          is_out_of_competition,
+          distance_raw: `${distRaw}`,
+          time_raw: timeRaw,
         });
       }
     }
@@ -415,6 +421,11 @@ export class AthletesService {
     // If already in English
     if (['Freestyle', 'Backstroke', 'Breaststroke', 'Butterfly', 'Medley'].includes(s)) return s as SwimStyle;
     return 'Freestyle';
+  }
+
+  private isOutOfCompetitionMarker(raw: string): boolean {
+    const normalized = raw.toLowerCase();
+    return /(поза\s+конкурс|п\/к|\(пк\)|\bпк\b)/.test(normalized);
   }
 
   private normalizeAthleteGender(gender: string | undefined): PrismaAthleteGender {
@@ -689,6 +700,7 @@ export class AthletesService {
             athleteId, eventId: eventRec.id,
             entryTimeMs: e.entry_time_ms ?? null,
             ageGroupId, doctorApproved,
+            isOutOfCompetition: Boolean(e.is_out_of_competition),
           } });
           existingPairs.add(pairKey);
           importedEntries++;

@@ -189,6 +189,7 @@ model Entry {
   laneNumber     Int?
   ageGroupId     Int?
   doctorApproved Boolean  @default(false)
+  isOutOfCompetition Boolean @default(false)
   status         EntryStatus   @default(IN) // IN, PK, DQ, DNS, DNF
 
   athlete  Athlete?             @relation(fields: [athleteId], references: [id], onDelete: Cascade)

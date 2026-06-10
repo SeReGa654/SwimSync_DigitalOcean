@@ -76,6 +76,10 @@ class ParsedEntryDto {
   @IsOptional()
   @IsInt()
   entry_time_ms?: number | null;
+
+  @IsOptional()
+  @IsBoolean()
+  is_out_of_competition?: boolean;
 }
 
 export class ConfirmImportDto {

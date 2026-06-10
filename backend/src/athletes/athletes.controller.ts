@@ -38,6 +38,7 @@ interface ParsedDocxEntry {
   style: SwimStyle;
   gender?: string;
   entry_time_ms?: number | null;
+  is_out_of_competition?: boolean;
 }
 
 interface ExtractedEventPreview {

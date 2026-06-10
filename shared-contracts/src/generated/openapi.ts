@@ -236,7 +236,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/competitions/age-groups/{agId}": {
+    "/api/competitions/{id}/age-groups/{agId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1024,7 +1024,8 @@ export interface paths {
         delete: operations["WaBaseTimesController_delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update WA base time row (admin only) */
+        patch: operations["WaBaseTimesController_update"];
         trace?: never;
     };
     "/api/ua-sport-ranks": {
@@ -1244,6 +1245,40 @@ export interface paths {
         put?: never;
         /** Create support ticket from authenticated user context */
         post: operations["SupportController_createTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/competitions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public competition info for live scoreboard */
+        get: operations["PublicController_getCompetition"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public events list for live scoreboard */
+        get: operations["PublicController_getEvents"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2905,6 +2940,29 @@ export interface operations {
             };
         };
     };
+    WaBaseTimesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertWaBaseTimeRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UaSportRanksController_findAll: {
         parameters: {
             query?: {
@@ -3192,6 +3250,44 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicController_getCompetition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicController_getEvents: {
+        parameters: {
+            query: {
+                competitionId: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -102,7 +102,9 @@ export default function StartProtocolPreview({ params }: { params: Promise<{ id:
                     {heat.entries.map((entry, j: number) => (
                       <tr key={`e-${heat.number}-${j}`} className="border-b border-slate-100">
                         <td className="px-2 py-1 text-center">{entry.lane}</td>
-                        <td className="px-2 py-1">{entry.full_name}</td>
+                        <td className="px-2 py-1">
+                          {entry.full_name}{entry.is_out_of_competition ? ' (ПК)' : ''}
+                        </td>
                         <td className="px-2 py-1 text-center">{entry.age_group}</td>
                         <td className="px-2 py-1 text-center">{entry.birth_year}</td>
                         <td className="px-2 py-1 text-center font-mono">{msToStartFormat(entry.entry_time_ms)}</td>

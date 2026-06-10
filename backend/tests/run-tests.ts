@@ -4,6 +4,7 @@ import { AuthService } from '../src/auth/auth.service';
 import { FeatureFlagsService } from '../src/feature-flags/feature-flags.service';
 import { FEATURE_FLAG_DEFINITIONS } from '../src/feature-flags/feature-flags.registry';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ResultsService } from '../src/results/results.service';
 import { AthletesController } from '../src/athletes/athletes.controller';
 import { CompetitionsService } from '../src/competitions/competitions.service';
 import { ExportController } from '../src/export/export.controller';
@@ -92,6 +93,67 @@ async function main() {
       achievedRank: null,
       pointsWa: null,
       status: payload.status ?? 'OK',
+      dqReason: null,
+    },
+  });
+
+  const finalizeScenario = async (entries: any[]) => {
+    const updates: Array<{ id: number; data: any }> = [];
+    const prisma = {
+      event: {
+        findUnique: async () => ({
+          id: 1,
+          competitionId: 1,
+          distance: 50,
+          style: 'FREE',
+          gender: 'M',
+          competition: { status: 'active', poolLength: 50 },
+        }),
+      },
+      entry: {
+        findMany: async () => entries,
+      },
+      waBaseTime: {
+        findFirst: async () => ({ baseTimeMs: 60000 }),
+      },
+      uaSportRank: {
+        findMany: async () => [],
+      },
+      result: {
+        update: async ({ where, data }: any) => {
+          updates.push({ id: where.id, data });
+          return { id: where.id, ...data };
+        },
+      },
+      athlete: {
+        update: async () => ({}),
+      },
+      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+    } as unknown as PrismaService;
+
+    const service = new ResultsService(
+      prisma,
+      { notifyResultsUpdated: () => undefined } as any,
+      { logAction: async () => undefined } as any,
+    );
+    await service.finalizeEvent(1);
+    return new Map(updates.map((u) => [u.id, u.data]));
+  };
+
+  const makeResultEntry = (id: number, timeMs: number, options?: { isOutOfCompetition?: boolean; resultStatus?: string; entryStatus?: string }) => ({
+    id,
+    ageGroupId: null,
+    isOutOfCompetition: options?.isOutOfCompetition ?? false,
+    status: options?.entryStatus ?? 'IN',
+    athlete: null,
+    result: {
+      id,
+      finishTimeMs: timeMs,
+      status: options?.resultStatus ?? 'OK',
+      place: null,
+      placeDisplay: null,
+      pointsWa: null,
+      achievedRank: null,
       dqReason: null,
     },
   });
@@ -191,6 +253,54 @@ async function main() {
     const sortedEntries = Array.from({ length: 9 }).map((_, idx) => ({ id: idx + 1, entryTimeMs: 50000 + idx * 1000 }));
     const assigned = assignEntriesToHeats(sortedEntries, 3);
     assert.deepEqual(assigned.map((item) => item.heatNumber), [3, 3, 3, 2, 2, 2, 1, 1, 1]);
+  });
+
+  await runTest('Finalize results: стандартний сценарій без ПК', async () => {
+    const updates = await finalizeScenario([
+      makeResultEntry(1, 28500),
+      makeResultEntry(2, 29000),
+      makeResultEntry(3, 29500),
+    ]);
+    assert.equal(updates.get(1)?.place, 1);
+    assert.equal(updates.get(2)?.place, 2);
+    assert.equal(updates.get(3)?.place, 3);
+  });
+
+  await runTest('Finalize results: ПК учасник після місць', async () => {
+    const updates = await finalizeScenario([
+      makeResultEntry(1, 28500),
+      makeResultEntry(2, 29000),
+      makeResultEntry(3, 29500, { isOutOfCompetition: true }),
+    ]);
+    assert.equal(updates.get(1)?.place, 1);
+    assert.equal(updates.get(2)?.place, 2);
+    assert.equal(updates.get(3)?.place, null);
+    assert.equal(updates.get(3)?.placeDisplay, 'п/к');
+  });
+
+  await runTest('Finalize results: ПК із найкращим часом не забирає місце', async () => {
+    const updates = await finalizeScenario([
+      makeResultEntry(1, 28500),
+      makeResultEntry(2, 27500, { isOutOfCompetition: true }),
+      makeResultEntry(3, 29000),
+    ]);
+    assert.equal(updates.get(1)?.place, 1);
+    assert.equal(updates.get(3)?.place, 2);
+    assert.equal(updates.get(2)?.place, null);
+    assert.equal(updates.get(2)?.placeDisplay, 'п/к');
+  });
+
+  await runTest('Finalize results: кілька ПК учасників без місць', async () => {
+    const updates = await finalizeScenario([
+      makeResultEntry(1, 28500, { isOutOfCompetition: true }),
+      makeResultEntry(2, 28700, { isOutOfCompetition: true }),
+      makeResultEntry(3, 29500),
+    ]);
+    assert.equal(updates.get(3)?.place, 1);
+    assert.equal(updates.get(1)?.place, null);
+    assert.equal(updates.get(2)?.place, null);
+    assert.equal(updates.get(1)?.placeDisplay, 'п/к');
+    assert.equal(updates.get(2)?.placeDisplay, 'п/к');
   });
 
   await runTest('AthletesController блокує bulk-edit import коли флаг вимкнений', async () => {
@@ -508,4 +618,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

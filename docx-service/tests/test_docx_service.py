@@ -43,6 +43,16 @@ SAMPLE_START_EVENTS = [
                         "entry_time_ms": 28500,
                         "coach": "Петренко",
                     }
+                    ,
+                    {
+                        "lane": 5,
+                        "full_name": "Петренко Марія",
+                        "age_group": "2010-2011",
+                        "birth_year": 2011,
+                        "entry_time_ms": 29200,
+                        "coach": "Сидоренко",
+                        "is_out_of_competition": True,
+                    }
                 ],
             }
         ],
@@ -121,6 +131,7 @@ def test_generate_start_protocol_golden_content():
     assert "Чемпіонат області" in text
     assert "Стартовий протокол" in text
     assert "День проведення: 2026-05-10" in text
+    assert "Петренко Марія (ПК)" in text
 
 
 def test_generate_result_protocol_golden_content():

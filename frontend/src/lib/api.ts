@@ -158,6 +158,7 @@ export interface ParsedEntry {
   style: string;
   gender?: 'M' | 'F';
   entry_time_ms?: number | null;
+  is_out_of_competition?: boolean;
   distance_raw?: string;
   time_raw?: string;
 }
@@ -290,6 +291,7 @@ export interface StartProtocolHeatEntry {
   birth_year: number;
   entry_time_ms: number | null;
   coach: string;
+  is_out_of_competition?: boolean;
 }
 
 export interface StartProtocolHeat {
@@ -759,4 +761,3 @@ export const api = {
       body: JSON.stringify(data),
     }),
 };
-
